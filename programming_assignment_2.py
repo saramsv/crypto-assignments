@@ -11,8 +11,7 @@ xorWord = lambda ss,cc: ''.join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
 def generate_iv(block_length):
     #IV = 16 * '\x00'
     IV = Random.get_random_bytes(block_length) # CHECK!!
-    IV = binascii.hexlify(IV).decode()
-    #print (type(IV))
+    IV = binascii.hexlify(IV)
     return IV
 
 def pad(plaintext,block_length):
@@ -21,7 +20,7 @@ def pad(plaintext,block_length):
     num_blocks = len(plaintext)/block_length
     message_blocks = []
     for i in range(num_blocks):
-        message_blocks.append(binascii.hexlify(plaintext[i*block_length:(i+1)*block_length]).decode())
+        message_blocks.append(binascii.hexlify(plaintext[i*block_length:(i+1)*block_length]))
     return message_blocks
 
 def CBC_encryption(plaintext , key):
@@ -49,7 +48,7 @@ def CBC_decryption(ciphertext,key, IV_init):
         decrypted_plaintext[i] = binascii.unhexlify(xorWord(decryptor.decrypt(ciphertext[i]), IV))      
     return decrypted_plaintext
 
-'''def CTR_encryption(plaintext, key):
+def CTR_encryption(plaintext, key):
     mode = AES.MODE_ECB
     encryptor = AES.new(key)
     xorWord = lambda ss,cc: ''. join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
@@ -58,16 +57,9 @@ def CBC_decryption(ciphertext,key, IV_init):
     cipher_blocks = []
     for plaintext_i in plaintext:
         cipher_blocks.append(xorWord(encryptor.encrypt(IV),plaintext_i))
-        print '1'
-        print IV
-        IV = int(binascii.hexlify(IV).decode()) + 1
-        print 'iv+1'
-        print IV
-        #IV = str(IV)
-        #IV = binascii.hexlify(IV).decode('hex')
-        print str(IV).decode("utf-8")
-        #print IV
-    return cipher_blocks'''    
+        IV = int(IV,16) + 1
+        IV = binascii.hexlify(IV)
+    return cipher_blocks
 
                 
 
@@ -78,13 +70,7 @@ if __name__=='__main__':
     ciphertext,iv = CBC_encryption(message_blocks, key)
     decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
     print (decrypted_plaintext)
-    
-    #CTR_encryption(plaintext, key)
-    '''IV = generate_iv(block_length)
-    IV = int(IV) + 1
-    print (type(IV))
-    print IV'''
-    
+    print CTR_encryption(plaintext, key)
 
 
 
