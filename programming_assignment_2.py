@@ -48,6 +48,12 @@ def CBC_decryption(ciphertext,key, IV_init):
         decrypted_plaintext[i] = binascii.unhexlify(xorWord(decryptor.decrypt(ciphertext[i]), IV))      
     return decrypted_plaintext
 
+def Dump(n):
+    s = '%x' % n
+    if len(s) & 1:
+       s = '0' + s
+    return s.decode('hex')
+
 def CTR_encryption(plaintext, key):
     mode = AES.MODE_ECB
     encryptor = AES.new(key)
@@ -57,20 +63,25 @@ def CTR_encryption(plaintext, key):
     cipher_blocks = []
     for plaintext_i in plaintext:
         cipher_blocks.append(xorWord(encryptor.encrypt(IV),plaintext_i))
-        IV = int(IV,16) + 1
         IV = binascii.hexlify(IV)
+        IV = int(IV, 16) + 1
+        IV = Dump(IV)
     return cipher_blocks
 
                 
 
 if __name__=='__main__':
 
+    # Encrypt using CBC mode
     plaintext = 'sarakai' * 15
     message_blocks = pad(plaintext,block_length)
     ciphertext,iv = CBC_encryption(message_blocks, key)
+    # decrypt using CBC mode
     decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
-    print (decrypted_plaintext)
-    print CTR_encryption(plaintext, key)
+
+    # Encrypt using CTR mode
+    haha = CTR_encryption(message_blocks, key)
+    # decrypt using CTR mode
 
 
 
