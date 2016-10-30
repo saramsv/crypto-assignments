@@ -4,6 +4,7 @@ from Crypto import Random
 import binascii
 import struct
 import math
+from Crypto.Hash import MD5
 key = '0123456789abcdef'
 block_length = 16
 xorWord = lambda ss,cc: ''.join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
@@ -106,16 +107,31 @@ def CBC_mac(plaintext , key):
     return mac
                 
 def CBC_mac_verification(message , key , tag):
-    #message = CBC_mac_pad(message , block_length)
     tag_new = CBC_mac(message , key)
     if tag == tag_new:
-        print "valid"
+        print 'valid tag'
         return
     else:
-        print "invalid"
+        print 'nvalid tag'
         return
 
+def Hash_and_mac(message , key):
+    m = MD5.new()
+    m.update(message)
+    dig = m.hexdigest() #this returns 16 byte but m.digest returns 8 bytes
+    mode = AES.MODE_ECB
+    encryptor = AES.new(key,mode)
+    tag = encryptor.encrypt(dig)
+    return tag
 
+def Hash_and_mac_verificaion(message, key, tag):
+    tag_ = Hash_and_mac(message, key)
+    if tag_==tag:
+        print 'valid tag'
+        return
+    else:
+        print 'invalid tag'
+        return
 
 if __name__=='__main__':
 
@@ -124,7 +140,7 @@ if __name__=='__main__':
     message_blocks = pad(plaintext,block_length)
     ciphertext,iv = CBC_encryption(message_blocks, key)
     print "{}".format(plaintext)
-    print "Cipher text: {}".format(ciphertext)
+    #print "Cipher text: {}".format(ciphertext)
     # decrypt using CBC mode
     decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
     print ''.join(decrypted_plaintext)
@@ -132,10 +148,13 @@ if __name__=='__main__':
     # Encrypt using CTR mode
     #print CTR_encryption(message_blocks, key)
     # decrypt using CTR mode
-    # generating a mac and verify it
+
+    # generating a mac and verify it using CBC_mac
     tag = CBC_mac(plaintext , key)
-    tag_ = tag
+    tag_ = 'sarjkjkjdiie'
     CBC_mac_verification(plaintext , key , tag_)
 
-
-
+    # generating a mac and verify it using Hash-and-mac
+    print binascii.hexlify(Hash_and_mac(plaintext , key))
+    tag2 = 'hfueie'
+    Hash_and_mac_verificaion(plaintext , key , tag2)
