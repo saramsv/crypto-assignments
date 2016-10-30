@@ -66,6 +66,17 @@ def CTR_encryption(plaintext, key):
         IV = Dump(IV)
     return cipher_blocks
 
+def CTR_decryption(ciphertext, key, IV):
+    mode = AES.MODE_ECB
+    decryptor = AES.new(key)
+    decrypted_plaintext = [0]*len(ciphertext)
+    for i in range(len(ciphertext)): 
+        IV = binascii.hexlify(IV)
+        IV = int(IV, 16) + 1
+        IV = Dump(IV)
+        decrypted_plaintext[i] = ecryptor.decrypt(xorWord(dciphertext[i], IV))
+    return decrypted_plaintext
+
 def to_bytes(n, length, endianess='big'): # the input number's length in bits  has to be less than block length 
     h = '%x' % n
     s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
@@ -146,8 +157,12 @@ if __name__=='__main__':
     print ''.join(decrypted_plaintext)
 
     # Encrypt using CTR mode
+    ciphertext,iv = CBC_encryption(message_blocks, key)
+    print "{}".format(plaintext)
     #print CTR_encryption(message_blocks, key)
     # decrypt using CTR mode
+    decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
+    print ''.join(decrypted_plaintext)
 
     # generating a mac and verify it using CBC_mac
     tag = CBC_mac(plaintext , key)
