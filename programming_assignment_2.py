@@ -5,7 +5,9 @@ import binascii
 import struct
 import math
 from Crypto.Hash import MD5
-key = '0123456789abcdef'
+k = open('exampleKeyOnes.txt')
+key = k.read()
+key = binascii.unhexlify(key)
 block_length = 16
 xorWord = lambda ss,cc: ''.join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
 
@@ -112,7 +114,7 @@ def CBC_mac_verification(message , key , tag):
         print 'valid tag'
         return
     else:
-        print 'nvalid tag'
+        print 'invalid tag'
         return
 
 def Hash_and_mac(message , key):
@@ -136,10 +138,11 @@ def Hash_and_mac_verificaion(message, key, tag):
 if __name__=='__main__':
 
     # Encrypt using CBC mode
-    plaintext = 'sarakai_' * 15
+    input_file = open('exampleInputA.txt')
+    plaintext = input_file.read()
     message_blocks = pad(plaintext,block_length)
     ciphertext,iv = CBC_encryption(message_blocks, key)
-    print "{}".format(plaintext)
+    print "CBC_encryption{}".format(ciphertext)
     #print "Cipher text: {}".format(ciphertext)
     # decrypt using CBC mode
     decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
@@ -155,6 +158,6 @@ if __name__=='__main__':
     CBC_mac_verification(plaintext , key , tag_)
 
     # generating a mac and verify it using Hash-and-mac
-    print binascii.hexlify(Hash_and_mac(plaintext , key))
+    print "mac resulted from hash and mac{}".format(binascii.hexlify(Hash_and_mac(plaintext , key)))
     tag2 = 'hfueie'
     Hash_and_mac_verificaion(plaintext , key , tag2)
