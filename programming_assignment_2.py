@@ -146,6 +146,26 @@ def Hash_and_mac_verificaion(message, key, tag):
         print 'invalid tag'
         return
 
+def generate_prime_number(leftvalue, rightvalue):
+    if leftvalue >= rightvalue:
+        return []
+    primes = [2]
+    for n in range(3, rightvalue + 1, 2):
+        for p in primes:
+            if n % p == 0:
+                break
+        else:
+            primes.append(n)
+    while primes and primes[0] < leftvalue:
+        del primes[0]
+    return primes
+    
+def check_relatively_prime(a, b):
+    for n in range(2, min(a, b) + 1):
+        if a % n == b % n == 0:
+            return False
+    return True # True if ``a`` and ``b`` are relatively prime.
+
 if __name__=='__main__':
 
     # Encrypt using CBC mode
