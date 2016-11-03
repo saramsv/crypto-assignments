@@ -5,6 +5,7 @@ import binascii
 import struct
 import math
 from Crypto.Hash import MD5
+import random
 k = open('exampleKeyOnes.txt')
 key = k.read()
 key = binascii.unhexlify(key)
@@ -15,6 +16,49 @@ def generate_iv(block_length):
     #IV = 16 * '\x00'
     IV = Random.get_random_bytes(block_length) # CHECK!!
     return IV
+
+def prime_test(p):
+    s = 0
+    N = p-1
+    while True:
+        N = N/2
+        s = s + 1
+        if N % 2 == 1:
+            d = N
+            break
+    a = random.randint(1, p-1)
+    flag = False
+    for r in range(s):
+        if r == 0:
+            w = pow(a, d, p)
+            if w == 1:
+                flag = True
+                break
+        q = pow(a, (2**r)*d , p)
+        if q == p-1:
+            flag = True
+            break
+    return flag
+
+def generate_prime(num_bits):
+    k = num_bits  
+    while True:
+        p = random.randrange(2**(k-1),2**(k))
+
+        prime_number_p = prime_test(p)
+        if prime_number_p == True :
+            return p
+    '''
+    while True:
+        #q = random.getrandbits(100)
+        q = random.randrange(2**(k-1),2**(k))
+        
+        prime_number_q = prime_test(q)
+        if prime_number_q == True :
+            break
+    N = p*q
+    return p
+    '''
 
 def pad(plaintext,block_length):
     num_padzeros = len(plaintext) % block_length
@@ -176,3 +220,8 @@ if __name__=='__main__':
     print "mac resulted from hash and mac{}".format(binascii.hexlify(Hash_and_mac(plaintext , key)))
     tag2 = 'hfueie'
     Hash_and_mac_verificaion(plaintext , key , tag2)
+    print generate_prime(1024)
+
+
+
+
