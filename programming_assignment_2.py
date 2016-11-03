@@ -48,17 +48,6 @@ def generate_prime(num_bits):
         prime_number_p = prime_test(p)
         if prime_number_p == True :
             return p
-    '''
-    while True:
-        #q = random.getrandbits(100)
-        q = random.randrange(2**(k-1),2**(k))
-        
-        prime_number_q = prime_test(q)
-        if prime_number_q == True :
-            break
-    N = p*q
-    return p
-    '''
 
 def pad(plaintext,block_length):
     num_padzeros = len(plaintext) % block_length
@@ -189,26 +178,6 @@ def Hash_and_mac_verificaion(message, key, tag):
     else:
         print 'invalid tag'
         return
-
-def generate_prime_number(leftvalue, rightvalue):
-    if leftvalue >= rightvalue:
-        return []
-    primes = [2]
-    for n in range(3, rightvalue + 1, 2):
-        for p in primes:
-            if n % p == 0:
-                break
-        else:
-            primes.append(n)
-    while primes and primes[0] < leftvalue:
-        del primes[0]
-    return primes
-    
-def check_relatively_prime(a, b):
-    for n in range(2, min(a, b) + 1):
-        if a % n == b % n == 0:
-            return False
-    return True # True if ``a`` and ``b`` are relatively prime.
 
 if __name__=='__main__':
 
