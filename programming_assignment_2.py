@@ -127,7 +127,6 @@ def CTR_decryption(ciphertext, key, IV):
         IV = int(IV, 16) +1
         IV = Dump(IV)
         decrypted_plaintext.append(xorWord(c,encryptor.encrypt(IV)))
-
     return decrypted_plaintext
 
 def to_bytes(n, length, endianess='big'): # the input number's length in bits  has to be less than block length 
@@ -267,13 +266,14 @@ if __name__=='__main__':
     print "mac resulted from hash and mac{}".format(binascii.hexlify(Hash_and_mac(plaintext , key)))
     tag2 = 'hfueie'
     Hash_and_mac_verificaion(plaintext , key , tag2)
-    
+    ''' 
     p = generate_prime(1024)
     q = generate_prime(1024)
     print p
     print q
     #n, phi, d, e = make_key_pair(p, q)
     #print n, phi, d, e
+    '''
     
 
 
