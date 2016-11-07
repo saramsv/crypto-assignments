@@ -119,7 +119,7 @@ def CTR_encryption(plaintext, IV_blocks):
         cipher_blocks[i] = xorWord(IV_blocks[i],plaintext[i])
     return cipher_blocks
 
-def CTR_decryption(ciphertext, key, IV):
+def CTR_decryption(ciphertext, IV):
     decrypted_plaintext = [0]*len(ciphertext)
     for i in range(len(ciphertext)):
         decrypted_plaintext[i] = xorWord(ciphertext[i], IV_blocks[i])
