@@ -223,6 +223,39 @@ def make_key_pair(p,q):
     return p*q, phi_N, d, e
 
 
+def binary(num, pre, length, spacer):
+    return '{0}{{:{1}>{2}}}'.format(pre, spacer, length).format(bin(num)[2:])
+
+def RSA_padding(message, block_length):
+    message_length_in_bit = message.bit_length()
+    message_length_in_each_block = (block_length/2 - 3) * 8  #in bits
+    number_of_blocks = math.ceil(message_length_in_bit / float(message_length_in_each_block))
+
+    randomness_length_in_each_block = block_length/2 * 8 #in bits
+
+    # generate message bits:
+    message_bits = format(message, 'b').zfill(message_length_in_each_block)
+    #bbb = binary(message,'00000010', block_length*8 - message_length_each_block - 16, '0')
+
+    # generate random bits:
+    random_bits = []
+    for i in range(randomness_length_in_each_block/8):
+        numbers = range(1,255)
+        r = random.choice(numbers)
+        r = format(r, 'b').zfill(8) 
+        random_bits.append(r)
+    randomness = ''.join(random_bits)
+    message_block = '0000000000000010' + randomness + '00000000' + message_bits
+    return message_block
+
+
+
+def RSA_encryption(m, N, e):
+    return pow(m, e, N)
+
+def RSA_decryption(m, N, d):
+    return pow(m, d, N)
+
 if __name__=='__main__':
 
     
@@ -269,6 +302,16 @@ if __name__=='__main__':
     print q
     #n, phi, d, e = make_key_pair(p, q)
     #print n, phi, d, e
+    
+    message = 23
+    message_length_in_bit = message.bit_length()
+    message_length_each_block = (block_length/2 - 3) * 8
+    number_of_blocks = int(math.ceil(message_length_in_bit / float(message_length_each_block)))
+    print message_length_in_bit,message_length_each_block,number_of_blocks   
+    print RSA_padding(message,block_length)
+    b = format(message, 'b').zfill(8) 
+    print b
+    print b[1:3]
     
 
 
