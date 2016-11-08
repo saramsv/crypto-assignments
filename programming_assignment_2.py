@@ -98,35 +98,31 @@ def Dump(n):
        s = '0' + s
     return s.decode('hex')
 
-def CTR_encryption(plaintext, key):
+def generate_IV(plaintext, key):
     mode = AES.MODE_ECB
-    encryptor = AES.new(key)
-    IV = generate_iv(block_length)
-    IV_init = IV
-    cipher_blocks = []
-    for plaintext_i in plaintext:
-        cipher_blocks.append(xorWord(encryptor.encrypt(IV),plaintext_i))
-        IV = binascii.hexlify(IV)
-        IV = int(IV, 16) + 1
-        IV = Dump(IV)
-    return cipher_blocks,IV_init
+    encryptor = AES.new(key,mode)
 
-def CTR_decryption(ciphertext, key, IV):
-    mode = AES.MODE_ECB
-    encryptor = AES.new(key)
-    decrypted_plaintext =[]# [0]*len(ciphertext)
-    '''
-    for i in range(len(ciphertext)): 
+    IV = generate_iv(block_length)
+    IV_blocks = []
+    IV_blocks.append(encryptor.encrypt(IV))
+    
+    for plaintext_i in plaintext:
         IV = binascii.hexlify(IV)
         IV = int(IV, 16) + 1
         IV = Dump(IV)
-        decrypted_plaintext[i] = xorWord(ciphertext[i],encryptor.encrypt(IV))
-    '''
-    for c in ciphertext:
-        IV = binascii.hexlify(IV)
-        IV = int(IV, 16) +1
-        IV = Dump(IV)
-        decrypted_plaintext.append(xorWord(c,encryptor.encrypt(IV)))
+        IV_blocks.append(IV)
+    return IV_blocks
+
+def CTR_encryption(plaintext, IV_blocks):
+    cipher_blocks = [0]*len(plaintext)
+    for i in range(len(plaintext)):
+        cipher_blocks[i] = xorWord(IV_blocks[i],plaintext[i])
+    return cipher_blocks
+
+def CTR_decryption(ciphertext, IV_blocks):
+    decrypted_plaintext = [0]*len(ciphertext)
+    for i in range(len(ciphertext)):
+        decrypted_plaintext[i] = xorWord(ciphertext[i], IV_blocks[i])
     return decrypted_plaintext
 
 def to_bytes(n, length, endianess='big'): # the input number's length in bits  has to be less than block length 
@@ -248,14 +244,14 @@ if __name__=='__main__':
 
 
     # Encrypt using CTR mode
-    print plaintext
-    ciphertext,iv = CTR_encryption(message_blocks, key)
+    IV = generate_IV(message_blocks,key)
+    ciphertext = CTR_encryption(message_blocks, IV)
     #print "{}".format(ciphertext)
     #print CTR_encryption(message_blocks, key)
     # decrypt using CTR mode
-    decrypted_plaintext = CTR_decryption(ciphertext, key, iv)
+    decrypted_plaintext = CTR_decryption(ciphertext, IV)
     p =  ''.join(decrypted_plaintext)
-    print binascii.hexlify(p)
+    print p
 
     # generating a mac and verify it using CBC_mac
     tag = CBC_mac(plaintext , key)
