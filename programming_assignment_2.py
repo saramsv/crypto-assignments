@@ -226,15 +226,16 @@ def make_key_pair(p,q):
 def binary(num, pre, length, spacer):
     return '{0}{{:{1}>{2}}}'.format(pre, spacer, length).format(bin(num)[2:])
 
-def RSA_padding(message, block_length):
+def RSA_padding(message, block_length,message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block):
+    '''
     message_length_in_bit = message.bit_length()
     message_length_in_each_block = (block_length/2 - 3) * 8  #in bits
     number_of_blocks = math.ceil(message_length_in_bit / float(message_length_in_each_block))
 
     randomness_length_in_each_block = block_length/2 * 8 #in bits
-
+    '''
     # generate message bits:
-    message_bits = format(message, 'b').zfill(message_length_in_each_block)
+    message_bits = message.zfill(message_length_in_each_block)
     #bbb = binary(message,'00000010', block_length*8 - message_length_each_block - 16, '0')
 
     # generate random bits:
@@ -246,8 +247,19 @@ def RSA_padding(message, block_length):
         random_bits.append(r)
     randomness = ''.join(random_bits)
     message_block = '0000000000000010' + randomness + '00000000' + message_bits
-    return message_block
+    a = int(message_block, 2)
+    return hex(a)
 
+def RSA_padding_all_blocks(message , block_lenght):
+    randomness_length_in_each_block = block_length/2 * 8 #in bits
+    message_length_in_bit = message.bit_length()
+    message_length_in_each_block = (block_length/2 - 3) * 8
+    number_of_blocks = int(math.ceil(message_length_in_bit / float(message_length_in_each_block)))
+    message_bit = format(message , 'b')
+    RSA_bloks = []
+    for i in range(0 , message_length_in_bit,message_length_in_each_block):
+        RSA_bloks.append(RSA_padding(message_bit[i:i+message_length_in_each_block], block_length,message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
+    return RSA_bloks
 
 
 def RSA_encryption(m, N, e):
@@ -305,17 +317,7 @@ if __name__=='__main__':
     '''
     
     message = 23
-    message_length_in_bit = message.bit_length()
-    message_length_each_block = (block_length/2 - 3) * 8
-    number_of_blocks = int(math.ceil(message_length_in_bit / float(message_length_each_block)))
-    print message_length_in_bit,message_length_each_block,number_of_blocks   
-    print RSA_padding(message,block_length)
-    b = format(message, 'b').zfill(8) 
-    print b
-    print b[1:3]
-    
-
-
+    print RSA_padding_all_blocks(message , block_length)
 
 
 
