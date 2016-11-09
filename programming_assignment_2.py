@@ -198,7 +198,7 @@ def check_relatively_prime(a,b):
     return a == 1
 
 def make_key_pair(p,q): 
-    #N = p * q
+    N = p * q
     phi_N = (p - 1) * (q - 1)
     '''
     e = random.randrange(0, phi_N)
@@ -213,14 +213,12 @@ def make_key_pair(p,q):
     if check_relatively_prime(e, phi_N)==False:
         print "This e doesnot work"
     d = 3
-    print e, phi_N
     while d < phi_N:
         a = (d * e) % phi_N
-        #print a
         if  a == 1:
             break 
         d = d + 1
-    return p*q, phi_N, d, e
+    return N, phi_N, d, e
 
 
 def binary(num, pre, length, spacer):
@@ -248,7 +246,8 @@ def RSA_padding(message, block_length,message_length_in_bit, message_length_in_e
     randomness = ''.join(random_bits)
     message_block = '0000000000000010' + randomness + '00000000' + message_bits
     a = int(message_block, 2)
-    return hex(a)
+    a = hex(a)[2:-1].zfill(block_length*2)
+    return a
 
 def RSA_padding_all_blocks(message , block_lenght):
     randomness_length_in_each_block = block_length/2 * 8 #in bits
@@ -317,7 +316,14 @@ if __name__=='__main__':
     '''
     
     message = 23
-    print RSA_padding_all_blocks(message , block_length)
+    message_blocks = RSA_padding_all_blocks(message , block_length)
+    for block_i in message_blocks:
+        c = RSA_encryption(int(block_i,16), N, e)
+        m = RSA_encryption(c, N, e)
+        m_block = m_block.append(m[-11:-1])
+    m =  ''.join(m_block)
+    m = int(m,16)    
+    print m
 
 
 
