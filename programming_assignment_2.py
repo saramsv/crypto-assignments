@@ -274,29 +274,33 @@ if __name__=='__main__':
     # Encrypt using CBC mode
     input_file = open('exampleInputA.txt')
     plaintext = input_file.read()
+    input_ = raw_input("Enter 1 for CBC mode encryption or 2 for CTR mode encryption: ")
     message_blocks = pad(plaintext,block_length)
-    ciphertext,iv = CBC_encryption(message_blocks, key)
-    #output_file = open('CBC_encryption.txt', 'w' )
-    #ciphertext_string = ''.join(ciphertext)
-    #output_file.write(ciphertext_string)
-    #print "CBC_encryption{}".format(ciphertext)
-    #print "Cipher text: {}".format(ciphertext)
-    # decrypt using CBC mode
-    decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
-    dec =  ''.join(decrypted_plaintext)
-    output_file = open('CBC_decryption.txt', 'w' )
-    output_file.write(dec)
+
+    if input_ == '1':
+        ciphertext,iv = CBC_encryption(message_blocks, key)
+        output_file = open('CBC_encryption.txt', 'w' )
+        ciphertext_string = ''.join(ciphertext)
+        output_file.write(ciphertext_string)
+        decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
+        dec =  ''.join(decrypted_plaintext)
+        output_file = open('CBC_decryption.txt', 'w' )
+        output_file.write(dec)
+        print "The resulted ciphrt text has been saved in CBC_ecryption.txt"
+        print "The resulted ciphrt text has been saved in CBC_decryption.txt"
 
 
-    # Encrypt using CTR mode
-    IV = generate_IV(message_blocks,key)
-    ciphertext = CTR_encryption(message_blocks, IV)
-    #print "{}".format(ciphertext)
-    #print CTR_encryption(message_blocks, key)
-    # decrypt using CTR mode
-    decrypted_plaintext = CTR_decryption(ciphertext, IV)
-    p =  ''.join(decrypted_plaintext)
-    print p
+    if input_ == '2':
+        IV = generate_IV(message_blocks,key)
+        ciphertext = CTR_encryption(message_blocks, IV)
+        output_file = open('CTR_encryption.txt', 'w' )
+        ciphertext_string = ''.join(ciphertext)
+        output_file.write(ciphertext_string)
+        decrypted_plaintext = CTR_decryption(ciphertext, IV)
+        p =  ''.join(decrypted_plaintext)
+        output_file = open('CTR_decryption.txt', 'w' )
+        output_file.write(p)
+
 
     # generating a mac and verify it using CBC_mac
     tag = CBC_mac(plaintext , key)
