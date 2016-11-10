@@ -322,14 +322,14 @@ if __name__=='__main__':
     print "mac resulted from hash and mac{}".format(binascii.hexlify(Hash_and_mac(plaintext , key)))
     tag2 = 'hfueie'
     Hash_and_mac_verificaion(plaintext , key , tag2)
-    ''' 
+     
     p = generate_prime(1024)
     q = generate_prime(1024)
     print p
     print q
-    #n, phi, d, e = make_key_pair(p, q)
-    #print n, phi, d, e
-    '''
+    N, phi, d, e = make_key_pair(p, q)
+    print N, phi, d, e
+    
     
     message = 23
     message_blocks = RSA_padding_all_blocks(message , block_length)
