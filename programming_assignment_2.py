@@ -167,7 +167,7 @@ def CBC_mac(plaintext , key):
                 
 def CBC_mac_verification(message , key , tag):
     tag_new = CBC_mac(message , key)
-    if tag == tag_new:
+    if binascii.unhexlify(tag) == tag_new:
         print 'valid tag'
         return
     else:
@@ -185,7 +185,7 @@ def Hash_and_mac(message , key):
 
 def Hash_and_mac_verificaion(message, key, tag):
     tag_ = Hash_and_mac(message, key)
-    if tag_==tag:
+    if tag_== binascii.unhexlify(tag):
         print 'valid tag'
         return
     else:
@@ -287,25 +287,37 @@ if __name__=='__main__':
 
     
     # Encrypt using CBC mode
-    input_file = open('exampleInputA.txt')
+    input_file = open('exampleInputA.txt')    
+    print "The default input is exampleInputA.txt, you may edit the file using your own input"
     plaintext = input_file.read()
-    input_ = raw_input("Enter 1 for CBC mode encryption or 2 for CTR mode encryption: ")
+    input_1 = raw_input("Enter 1 for CBC mode encryption or 2 for CTR mode encryption: ")
     message_blocks = pad(plaintext,block_length)
 
-    if input_ == '1':
+    if input_1 == '1':
+        #plaintext = input_file.read()
         ciphertext,iv = CBC_encryption(message_blocks, key)
         output_file = open('CBC_encryption.txt', 'w' )
         ciphertext_string = ''.join(ciphertext)
-        output_file.write(ciphertext_string)
+        output_file.write(binascii.hexlify(ciphertext_string))
         decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
         dec =  ''.join(decrypted_plaintext)
         output_file = open('CBC_decryption.txt', 'w' )
-        output_file.write(dec)
-        print "The resulted ciphrt text has been saved in CBC_ecryption.txt"
-        print "The resulted ciphrt text has been saved in CBC_decryption.txt"
+        output_file.write(binascii.hexlify(dec))
+        print "The resulted ciphr text has been saved in CBC_ecryption.txt"
+        print "The resulted plain text has been saved in CBC_decryption.txt"
+        print "plaintext"
+        print plaintext
+        print message_blocks
+        print ciphertext
+        print ciphertext_string
+        print binascii.hexlify(ciphertext_string)
+        print decrypted_plaintext
+        print dec
+        print binascii.hexlify(dec)
 
 
-    if input_ == '2':
+    if input_1 == '2':
+        plaintext = input_file.read()
         IV = generate_IV(message_blocks,key)
         ciphertext = CTR_encryption(message_blocks, IV)
         output_file = open('CTR_encryption.txt', 'w' )
@@ -315,41 +327,60 @@ if __name__=='__main__':
         p =  ''.join(decrypted_plaintext)
         output_file = open('CTR_decryption.txt', 'w' )
         output_file.write(p)
-
-
-    # generating a mac and verify it using CBC_mac
-    tag = CBC_mac(plaintext , key)
-    tag_ = 'sarjkjkjdiie'
-    CBC_mac_verification(plaintext , key , tag_)
+        print "The resulted ciphr text has been saved in CTR_ecryption.txt"
+        print "The resulted plain text has been saved in CTR_decryption.txt" 
+    '''    
+    print 'the default input is exampleInputA.txt, you may edit the file using your own input' 
+    input_2 = input("Enter 1 for CBC mac or 2 for hash and mac: ")
+    if input_2 == 1:
+        plaintext = input_file.read()
+        tag = CBC_mac(plaintext , key)
+        cbc_tag_file = open('CBC_mac.txt','w')
+        cbc_tag_file.write(binascii.hexlify(tag))
+        print "The resulted tag is saved in CBC_mac.txt"
+        print "Enter a plain text in exampleInputA.txt and a tag to verify"
+        inp = raw_input("tag: ")
+        tag_ = inp
+        plaintext = input_file.read()
+        CBC_mac_verification(plaintext , key , tag_)
 
     # generating a mac and verify it using Hash-and-mac
-    print "mac resulted from hash and mac{}".format(binascii.hexlify(Hash_and_mac(plaintext , key)))
-    tag2 = 'hfueie'
-    Hash_and_mac_verificaion(plaintext , key , tag2)
-    ''' 
+    if input_2 == 2:
+        plaintext = input_file.read()
+        hash_mac = open('hash_mac.txt','w')
+        hash_mac.write(binascii.hexlify(Hash_and_mac(plaintext , key)))
+        print "The resulted mac is saved in hash_mac.txt"
+        print "Enter a message in exampleInputA.txt and a tag to verify"
+        tag2 = raw_input("Tag: ")
+        plaintext = input_file.read()
+        Hash_and_mac_verificaion(plaintext , key , tag2)
+    
     p = generate_prime(1024)
     q = generate_prime(1024)
+
     print p
     print q
-    #n, phi, d, e = make_key_pair(p, q)
-    #print n, phi, d, e
-    '''
     
-    message = 23
+    N, phi, d, e = make_key_pair(p, q)
+    #print N, phi, d, e
+    
+    message = 2345685244525255658788754244
+    #message = random.randrange(a , b)
+    print message
     message_blocks = RSA_padding_all_blocks(message , block_length)
-    print message_blocks
+    #print message_blocks
     m_block = list();
     for block_i in message_blocks:
         c = RSA_encryption(int(block_i,16), N, e)
         m = RSA_decryption(c, N, d)
-        print m
+        #print m
         m = hex(m)
-        print m
+        #print m
         m_block.append(m[-11:-1])
     m =  ''.join(m_block)
     m = int(m,16)   
     print 'The decrypted message is:' 
     print m
-
+    '''
 
 
