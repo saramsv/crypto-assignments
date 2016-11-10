@@ -279,7 +279,7 @@ def RSA_padding_all_blocks(message , block_lenght):
         RSA_bloks.append(RSA_padding(message_bit[0 : residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
         for i in range(number_of_blocks - 1) :
             print i
-            RSA_bloks.append(RSA_padding(message_bit[i * message_length_in_each_block + residue + 1 : (i+1) * message_length_in_each_block + residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
+            RSA_bloks.append(RSA_padding(message_bit[i * message_length_in_each_block + residue : (i+1) * message_length_in_each_block + residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
     return RSA_bloks
 
 
