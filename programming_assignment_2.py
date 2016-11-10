@@ -333,12 +333,18 @@ if __name__=='__main__':
     
     message = 23
     message_blocks = RSA_padding_all_blocks(message , block_length)
+    print message_blocks
+    m_block = list();
     for block_i in message_blocks:
         c = RSA_encryption(int(block_i,16), N, e)
-        m = RSA_encryption(c, N, e)
-        m_block = m_block.append(m[-11:-1])
+        m = RSA_decryption(c, N, d)
+        print m
+        m = hex(m)
+        print m
+        m_block.append(m[-11:-1])
     m =  ''.join(m_block)
-    m = int(m,16)    
+    m = int(m,16)   
+    print 'The decrypted message is:' 
     print m
 
 
