@@ -272,8 +272,14 @@ def RSA_padding_all_blocks(message , block_lenght):
     number_of_blocks = int(math.ceil(message_length_in_bit / float(message_length_in_each_block)))
     message_bit = format(message , 'b')
     RSA_bloks = []
-    for i in range(0 , message_length_in_bit,message_length_in_each_block):
-        RSA_bloks.append(RSA_padding(message_bit[i:i+message_length_in_each_block], block_length,message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
+    residue = message_length_in_bit - (number_of_blocks - 1) * message_length_in_each_block
+    if number_of_blocks == 1:
+        RSA_bloks.append(RSA_padding(message_bit, block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
+    else:   
+        RSA_bloks.append(RSA_padding(message_bit[0 : residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
+        for i in range(number_of_blocks - 1) :
+            print i
+            RSA_bloks.append(RSA_padding(message_bit[i * message_length_in_each_block + residue + 1 : (i+1) * message_length_in_each_block + residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
     return RSA_bloks
 
 
