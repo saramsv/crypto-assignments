@@ -278,7 +278,6 @@ def RSA_padding_all_blocks(message , block_lenght):
     else:   
         RSA_bloks.append(RSA_padding(message_bit[0 : residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
         for i in range(number_of_blocks - 1) :
-            print i
             RSA_bloks.append(RSA_padding(message_bit[i * message_length_in_each_block + residue : (i+1) * message_length_in_each_block + residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
     return RSA_bloks
 
@@ -331,22 +330,15 @@ if __name__=='__main__':
      
     p = generate_prime(1024)
     q = generate_prime(1024)
-    print p
-    print q
     N, phi, d, e = make_key_pair(p, q)
-    print N, phi, d, e
-    
     
     message = 23
     message_blocks = RSA_padding_all_blocks(message , block_length)
-    print message_blocks
     m_block = list();
     for block_i in message_blocks:
         c = RSA_encryption(int(block_i,16), N, e)
         m = RSA_decryption(c, N, d)
-        print m
         m = hex(m)
-        print m
         m_block.append(m[-11:-1])
     m =  ''.join(m_block)
     m = int(m,16)   
