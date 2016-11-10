@@ -192,6 +192,21 @@ def Hash_and_mac_verificaion(message, key, tag):
         print 'invalid tag'
         return
 
+def Ext_Euclidean(e, phi_N):
+    u = e
+    v = phi_N
+    x1 = 1
+    x2 = 0
+    while (u ==1) == False:
+        q = v/u
+        r = v - q*u
+        x = x2 - q*x1
+        v = u
+        u = r
+        x2 = x1 
+        x1 = x
+    return x1 % phi_N
+
 def check_relatively_prime(a,b):
     while b: #b != 0
         a,b = b, a%b
@@ -212,12 +227,13 @@ def make_key_pair(p,q):
     e = 65537   
     if check_relatively_prime(e, phi_N)==False:
         print "This e doesnot work"
-    d = 3
+    d = Ext_Euclidean(e, phi_N)
+    '''d = 3
     while d < phi_N:
         a = (d * e) % phi_N
         if  a == 1:
             break 
-        d = d + 1
+        d = d + 1'''
     return N, phi_N, d, e
 
 
