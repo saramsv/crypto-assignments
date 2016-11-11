@@ -281,12 +281,22 @@ def RSA_padding_all_blocks(message , block_lenght):
             RSA_bloks.append(RSA_padding(message_bit[i * message_length_in_each_block + residue : (i+1) * message_length_in_each_block + residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
     return RSA_bloks
 
+# implement modular exponentiation
+def pow_mod(x, y, z):
+    "Calculate (x ** y) % z efficiently."
+    number = 1
+    while y:
+        if y & 1:
+            number = number * x % z
+        y >>= 1
+        x = x * x % z
+    return number
 
 def RSA_encryption(m, N, e):
-    return pow(m, e, N)
+    return pow_mod(m, e, N)
 
 def RSA_decryption(m, N, d):
-    return pow(m, d, N)
+    return pow_mod(m, d, N)
 
 if __name__=='__main__':
 
