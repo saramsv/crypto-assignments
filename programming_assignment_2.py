@@ -59,7 +59,7 @@ def generate_prime(num_bits):
                 #print i
                 return p
 
-def pad(plaintext,block_length):
+def pad(plaintext, block_length):
     num_padzeros = len(plaintext) % block_length
     plaintext = plaintext + chr(0)*num_padzeros
     num_blocks = len(plaintext)/block_length
@@ -167,7 +167,7 @@ def CBC_mac(plaintext , key):
                 
 def CBC_mac_verification(message , key , tag):
     tag_new = CBC_mac(message , key)
-    if binascii.unhexlify(tag) == tag_new:
+    if tag == binascii.hexlify(tag_new):
         print 'valid tag'
         return
     else:
@@ -185,12 +185,14 @@ def Hash_and_mac(message , key):
 
 def Hash_and_mac_verificaion(message, key, tag):
     tag_ = Hash_and_mac(message, key)
-    if tag_== binascii.unhexlify(tag):
+    if binascii.hexlify(tag_) == tag:
         print 'valid tag'
         return
     else:
         print 'invalid tag'
         return
+
+
 
 def Ext_Euclidean(e, phi_N):
     u = e
@@ -199,8 +201,8 @@ def Ext_Euclidean(e, phi_N):
     x2 = 0
     while (u ==1) == False:
         q = v/u
-        r = v - q*u
-        x = x2 - q*x1
+        r = v - q * u
+        x = x2 - q * x1
         v = u
         u = r
         x2 = x1 
@@ -245,7 +247,6 @@ def RSA_padding(message, block_length,message_length_in_bit, message_length_in_e
     message_length_in_bit = message.bit_length()
     message_length_in_each_block = (block_length/2 - 3) * 8  #in bits
     number_of_blocks = math.ceil(message_length_in_bit / float(message_length_in_each_block))
-
     randomness_length_in_each_block = block_length/2 * 8 #in bits
     '''
     # generate message bits:
@@ -265,7 +266,7 @@ def RSA_padding(message, block_length,message_length_in_bit, message_length_in_e
     a = hex(a)[2:-1].zfill(block_length*2)
     return a
 
-def RSA_padding_all_blocks(message , block_lenght):
+def RSA_padding_all_blocks(message , block_length):
     randomness_length_in_each_block = block_length/2 * 8 #in bits
     message_length_in_bit = message.bit_length()
     message_length_in_each_block = (block_length/2 - 3) * 8
@@ -281,18 +282,37 @@ def RSA_padding_all_blocks(message , block_lenght):
             RSA_bloks.append(RSA_padding(message_bit[i * message_length_in_each_block + residue : (i+1) * message_length_in_each_block + residue], block_length, message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block))
     return RSA_bloks
 
+# implement modular exponentiation
+def pow_mod(x, y, z):
+    "Calculate (x ** y) % z efficiently."
+    number = 1
+    while y:
+        if y & 1:
+            number = number * x % z
+        y >>= 1
+        x = x * x % z
+    return number
 
 def RSA_encryption(m, N, e):
-    return pow(m, e, N)
+    return pow_mod(m, e, N)
 
 def RSA_decryption(m, N, d):
-    return pow(m, d, N)
+    return pow_mod(m, d, N)
+
+def RSA_deleting_zeros(m):
+    k = 0
+    for i in range(len(m)):
+        if m[i] != '0' :
+            k = i
+            break
+    m = m[k:] 
+    return m
 
 if __name__=='__main__':
-
     
     # Encrypt using CBC mode
     input_file = open('exampleInputA.txt')    
+    
     print "The default input is exampleInputA.txt, you may edit the file using your own input"
     plaintext = input_file.read()
     message_blocks = pad(plaintext,block_length)
@@ -308,12 +328,14 @@ if __name__=='__main__':
                     output_file = open('CBC_encryption.txt', 'w' )
                     ciphertext_string = ''.join(ciphertext)
                     output_file.write(binascii.hexlify(ciphertext_string))
+                    output_file.close()
                     print "The resulted ciphr text has been saved in CBC_ecryption.txt"
                 if enc_dec == '2':
                     decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
                     dec =  ''.join(decrypted_plaintext)
                     output_file = open('CBC_decryption.txt', 'w' )
                     output_file.write(dec)
+                    output_file.close()
                     print "The resulted plain text has been saved in CBC_decryption.txt"
                 cbc_ = raw_input("Enter 'q' if you are done with CBC mode otherwise press a key: ")
                 if cbc_ == 'q':
@@ -330,55 +352,70 @@ if __name__=='__main__':
                     output_file = open('CTR_encryption.txt', 'w' )
                     ciphertext_string = ''.join(ciphertext)
                     output_file.write(binascii.hexlify(ciphertext_string))
+                    output_file.close()
                     print "The resulted ciphr text has been saved in CTR_ecryption.txt"
                 if enc_dec == '2':
                     decrypted_plaintext = CTR_decryption(ciphertext, IV)
                     p =  ''.join(decrypted_plaintext)
                     output_file = open('CTR_decryption.txt', 'w' )
                     output_file.write(p)
+                    output_file.close()
                     print "The resulted plain text has been saved in CTR_decryption.txt" 
                 ctr_ = raw_input("Enter 'q' if you are done with CTR mode otherwise press a key")
                 if ctr_ == 'q':
                     ctr = False
-            
-        print 'the default input is exampleInputA.txt, you may edit the file using your own input' 
-        input_2 = input("Enter 1 for CBC mac or 2 for hash and mac: ")
-        if input_2 == 1:
+        fla = raw_input("Enter 'q' if you are done with AESs otherwise press a key to continue: ")
+        if fla == 'q':
+            flag = False
+
+    mac = True
+    while mac:    
+        print 'the default input is exampleInputA.txt \nIf you want to verify a tag save it in tag.txt' 
+        input_2 = raw_input("Enter 1 for CBC mac or 2 for hash and mac: ")
+        if input_2 == '1':
             plaintext = input_file.read()
             tag = CBC_mac(plaintext , key)
             cbc_tag_file = open('CBC_mac.txt','w')
             cbc_tag_file.write(binascii.hexlify(tag))
-            print "The resulted tag is saved in CBC_mac.txt"
-            print "Enter a plain text in exampleInputA.txt and a tag to verify"
-            inp = raw_input("tag in hex: ")
-            tag_ = inp
-            plaintext = input_file.read()
+            print "The resulted mac is saved in CBC_mac.txt"
+            cbc_tag_file.close()
+            inp = open('tag.txt','r')
+            tag_ = inp.read()
+            inp.close()
             CBC_mac_verification(plaintext , key , tag_)
 
         # generating a mac and verify it using Hash-and-mac
-        if input_2 == 2:
+        if input_2 == '2':
             plaintext = input_file.read()
             hash_mac = open('hash_mac.txt','w')
             hash_mac.write(binascii.hexlify(Hash_and_mac(plaintext , key)))
+            hash_mac.close()
             print "The resulted mac is saved in hash_mac.txt"
-            print "Enter a message in exampleInputA.txt and a tag to verify"
-            tag2 = raw_input("Tag in hex: ")
-            plaintext = input_file.read()
+            inp = open('tag.txt', 'r')
+            tag2 = inp.read()
+            inp.close()
             Hash_and_mac_verificaion(plaintext , key , tag2)
-        fla = raw_input("Enter 'q' if you are done with AESs and MACs otherwise press a key to continue: ")
+        fla = raw_input("Enter 'q' if you are done with MACs otherwise press a key to continue: ")
         if fla == 'q':
-            flag = False
+            mac = False
+    
+
     print "RSA(please be patient, it may take few seconds): "
-    p = generate_prime(1024)
-    q = generate_prime(1024)
+    num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
+    num_bits = int(num_bits)
+    
+    p = generate_prime(num_bits)
+    q = generate_prime(num_bits)
     print "Prime numbers (p , q): "
     print p
     print q
     N, phi, d, e = make_key_pair(p, q)
     
-    message = 2345685244525255658788754244
+    message = input_file.read()
+    #print type(message)
+    message = int(message, 16)
     print 'message: {}'.format(message)
-    message_blocks = RSA_padding_all_blocks(message , block_length)
+    message_blocks = RSA_padding_all_blocks(message , num_bits/8)
     #print message_blocks
     m_block = list();
     for block_i in message_blocks:
@@ -387,10 +424,10 @@ if __name__=='__main__':
         #print m
         m = hex(m)
         #print m
-        m_block.append(m[-11:-1])
+        m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
     m =  ''.join(m_block)
-    m = int(m,16)   
-    print 'The decrypted message is:' 
-    print m
-
-
+    m = RSA_deleting_zeros(m)
+            
+    rsa_output = open('rsa_output.txt','w')
+    rsa_output.write(m)
+    rsa_output.close()
