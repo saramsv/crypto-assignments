@@ -254,15 +254,10 @@ def binary(num, pre, length, spacer):
 def RSA_padding(message, block_length,message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block):
 
     '''
-
     message_length_in_bit = message.bit_length()
-
     message_length_in_each_block = (block_length/2 - 3) * 8  #in bits
-
     number_of_blocks = math.ceil(message_length_in_bit / float(message_length_in_each_block))
-
     randomness_length_in_each_block = block_length/2 * 8 #in bits
-
     '''
     # generate message bits:
     message_bits = message.zfill(message_length_in_each_block)
@@ -442,5 +437,5 @@ if __name__=='__main__':
     rsa_output = open('rsa_output.txt','w')
     rsa_output.write(m)
     rsa_output.close()
-    print m
+    print "The decrypted mesage is saved in rsa_output.txt"
 
