@@ -220,7 +220,7 @@ def check_relatively_prime(a,b):
 def make_key_pair(p,q): 
     N = p * q
     phi_N = (p - 1) * (q - 1)
-    '''
+    
     e = random.randrange(0, phi_N)
     while True:
         if check_relatively_prime(e, phi_N):
@@ -228,8 +228,8 @@ def make_key_pair(p,q):
          else:
             e = random.randrange(0, phi_N)
             print "this is e"
-    print e'''
-    e = 65537   
+    print e
+    # e = 65537   
     if check_relatively_prime(e, phi_N)==False:
         print "This e doesnot work"
     d = Ext_Euclidean(e, phi_N)
