@@ -316,7 +316,7 @@ if __name__=='__main__':
                     ciphertext, iv_init = CBC_encryption(message_blocks, key)
                     ciphertext_string = ''.join(ciphertext)
                     # output ciphertext:
-                    output_file = open('CBC_ciphertext.txt', 'w' )
+                    output_file = open('CBC_encryption.txt', 'w' )
                     output_file.write(binascii.hexlify(ciphertext_string))
                     output_file.close()
                     # output iv_init:
@@ -345,7 +345,7 @@ if __name__=='__main__':
                     ciphertext = CTR_encryption(message_blocks, IV)
                     ciphertext_string = ''.join(ciphertext)
                     # save the ciphertext:
-                    output_file = open('CTR_ciphertext.txt', 'w' )
+                    output_file = open('CTR_encryption.txt', 'w' )
                     output_file.write(binascii.hexlify(ciphertext_string))
                     output_file.close()
                     # save the iv:
@@ -437,7 +437,7 @@ if __name__=='__main__':
     m =  ''.join(m_block)
     c = RSA_deleting_zeros(c)
     m = RSA_deleting_zeros(m)
-    rsa_output = open('rsa_ciphertext.txt','w')
+    rsa_output = open('rsa_encryption.txt','w')
     rsa_output.write(c)
     rsa_output.close()
     rsa_output = open('rsa_decryption.txt','w')
