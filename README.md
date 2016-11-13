@@ -1,10 +1,29 @@
-Problem 1:
-The key, plaintext, ciphertext (and iv), decrypted plaintext are all stored in files as hex encoded string.
-First, an option of CBC mode (enter '1') or CTR mode (enter '2') is provided, then, an option of encryption (enter '1') or decryption (enter '2') is provided.
+# CBC, CTR, CBC_Mac, Hash_and_Mac and RSA implementatio
+## CBC and CTR
+In this code we use exampleInputA.txt as the input plain text for all the functions. We also use exampleKeyOnes.txt as the key for CBC and CTR mode ciphers and CBC mac and Hash and mac. The result from each function is saved in a file. File names used in this program are as followsff:
 
-Problem 2:
-The key, message, tag are all stored in files as hex encoded string.
-First, an option of CBC mac (enter '1') or Hash-and-mac (enter '2') is provided, then the generated tag is saved in a file.
-Then, an option of whether to valify a tag is provided, if you want to, the tag you want to valify must be saved in a file named 'tag.txt', and then hit '1' as yes.  
+content | file name | 
+--- | --- |
+key |exampleKeyOnes.txt |
+plain text |exampleInputA.txt|
+CBC encryption |CBC_eccryption.txt|
+CBC decryption |CBC_decryption.txt|
+CBC IV |CBC_iv.txt|
+CTR encryption |CBC_encryption.txt|
+CTR decryption |CBC_decryption.txt|
+CTR IV |CTR_iv.txt|
 
-Problem 3:
+## MAC
+We use exampleInputA.txt as the message input for both CBC mac and Hash and mac. The reasult of them are saved in CBC_mac.txt and hash_mac.txt. Files 'tag.txt' and 'message.txt' are provided in order to verify a massage and a tag. You can edit these files and use your desierd input in hex.
+
+## RSA
+In this section we also use exampleInputA.txt file as the input. The result are saved in files as follows.
+
+content | file name | 
+--- | --- |
+Public key |p_key.txt |
+Private keys |s_key.txt |
+RSA encryption |rsa_encryption.txt|
+RSA decryption |rsa_decryption.txt|
+
+
