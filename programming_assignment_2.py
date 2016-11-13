@@ -9,33 +9,34 @@ from Crypto.Random import random
 
 k = open('exampleKeyOnes.txt')
 key = k.read()
+k.close()
 key = binascii.unhexlify(key)
 block_length = 16
 xorWord = lambda ss,cc: ''.join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
 
-def build_message_blocks(plaintext, block_length):
+def build_message_blocks(plaintext, block_length): # message is padded and divided into blocks
     num_padzeros = len(plaintext) % block_length
     plaintext = plaintext + chr(0)*num_padzeros
     num_blocks = len(plaintext)/block_length
     message_blocks = []
     for i in range(num_blocks):
-        message_blocks.append(plaintext[i*block_length:(i+1)*block_length])
+        message_blocks.append(plaintext[i * block_length : (i+1) * block_length])
     return message_blocks
 
-def CBC_encryption(plaintext , key):
+def CBC_encryption(plaintext, key): # CBC encryption
     mode = AES.MODE_ECB
     encryptor = AES.new(key)
-    IV = Random.get_random_bytes(block_length) 
-    IV_init = IV
+    IV_init = Random.get_random_bytes(block_length)  
+    IV = IV_init
     cipher_blocks = []
     for plaintext_i in plaintext:
         XOR_message = xorWord(plaintext_i,IV)
         cipher_blocks.append(encryptor.encrypt(XOR_message))
         IV = cipher_blocks[-1]
-    return cipher_blocks,IV_init
+    return cipher_blocks, IV_init
 
 
-def CBC_decryption(ciphertext,key, IV_init):
+def CBC_decryption(ciphertext,key, IV_init): # CBC decryption
     mode = AES.MODE_ECB
     decryptor = AES.new(key)
     decrypted_plaintext = [0]*len(ciphertext)
@@ -55,10 +56,10 @@ def Dump(n):
     return s.decode('hex')
 
 
-def generate_IV(plaintext, key):
+def generate_IV(plaintext, key): # generate IVs for CTR mode
     mode = AES.MODE_ECB
     encryptor = AES.new(key,mode)
-    IV = Random.get_random_bytes(block_length) 
+    IV = Random.get_random_bytes(block_length)
     IV_blocks = []
     IV_blocks.append(encryptor.encrypt(IV))
     for plaintext_i in plaintext:
@@ -69,21 +70,21 @@ def generate_IV(plaintext, key):
     return IV_blocks
 
 
-def CTR_encryption(plaintext, IV_blocks):
+def CTR_encryption(plaintext, IV_blocks): # CTR encryption
     cipher_blocks = [0]*len(plaintext)
     for i in range(len(plaintext)):
         cipher_blocks[i] = xorWord(IV_blocks[i],plaintext[i])
     return cipher_blocks
 
 
-def CTR_decryption(ciphertext, IV_blocks):
+def CTR_decryption(ciphertext, IV_blocks): # CTR decryption
     decrypted_plaintext = [0]*len(ciphertext)
     for i in range(len(ciphertext)):
         decrypted_plaintext[i] = xorWord(ciphertext[i], IV_blocks[i])
     return decrypted_plaintext
 
 
-def to_bytes(n, length, endianess='big'): # the input number's length in bits  has to be less than block length 
+def to_bytes(n, length, endianess='big'): # the input number's length in bits has to be less than block length 
     h = '%x' % n
     s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
     return s if endianess == 'big' else s[::-1]
@@ -93,7 +94,7 @@ def from_bytes(n):  #n is the number that is equal to the length of the message 
     return int(n.encode('hex'), 16)
 
 
-def CBC_mac_pad(plaintext , block_length):
+def CBC_mac_pad(plaintext, block_length): # pad message and devide into blocks for CBC-MAC
     message_length = len(plaintext)
     num_padzeros = message_length % block_length
     plaintext = plaintext + chr(0)*num_padzeros
@@ -106,7 +107,7 @@ def CBC_mac_pad(plaintext , block_length):
         message_blocks.append(plaintext[i*block_length:(i+1)*block_length])
     return message_blocks
 
-def CBC_mac(plaintext , key):
+def CBC_mac(plaintext, key):
     plaintext = CBC_mac_pad(plaintext, block_length)
     mode = AES.MODE_ECB
     encryptor = AES.new(key)
@@ -116,14 +117,14 @@ def CBC_mac(plaintext , key):
             cipher_block = encryptor.encrypt(plaintext_i)
             i = 1
         else:
-             XOR_message = xorWord(plaintext_i,cipher_block)
-             cipher_block = encryptor.encrypt(XOR_message)
-    mac = cipher_block
+            XOR_message = xorWord(plaintext_i,cipher_block)
+            cipher_block = encryptor.encrypt(XOR_message)
+    tag = cipher_block
     #mac = binascii.hexlify(mac)
-    return mac
-                
-def CBC_mac_verification(message , key , tag):
-    tag_new = CBC_mac(message , key)
+    return tag 
+               
+def CBC_mac_verification(message, key, tag):
+    tag_new = CBC_mac(message, key)
     if tag == binascii.hexlify(tag_new):
         print 'valid tag'
         return
@@ -131,15 +132,14 @@ def CBC_mac_verification(message , key , tag):
         print 'invalid tag'
         return
 
-def Hash_and_mac(message , key):
+def Hash_and_mac(message, key):
     m = MD5.new()
     m.update(message)
     dig = m.hexdigest() #this returns 16 byte but m.digest returns 8 bytes
     mode = AES.MODE_ECB
-    encryptor = AES.new(key,mode)
+    encryptor = AES.new(key, mode)
     tag = encryptor.encrypt(dig)
     return tag
-
 
 def Hash_and_mac_verificaion(message, key, tag):
     tag_ = Hash_and_mac(message, key)
@@ -150,8 +150,7 @@ def Hash_and_mac_verificaion(message, key, tag):
         print 'invalid tag'
         return
 
-
-def prime_test(p):
+def prime_test(p): # Miller-Rabin test
     s = 0
     N = p-1
     while True:
@@ -183,14 +182,15 @@ def generate_prime(num_bits):
         p = random.randrange(2**(k-1),2**(k))
         check = 0
         for i in prime_less_than_1000:
-            if p%i == 0:
+            if p % i == 0:
                 check = 1
-        #i = i+1
+        # i = i+1
         if check == 0:
             prime_number_p = prime_test(p)
             if prime_number_p == True :
                 #print i
                 return p
+
 def Ext_Euclidean(e, phi_N):
     u = e
     v = phi_N
@@ -221,38 +221,19 @@ def make_key_pair(p,q):
             break
         else:
             e = random.randrange(0, phi_N)
-            print "this is e"
-    print e
     # e = 65537   
-    if check_relatively_prime(e, phi_N)==False:
+    if check_relatively_prime(e, phi_N) == False:
         print "This e doesnot work"
     d = Ext_Euclidean(e, phi_N)
-    '''d = 3
-    while d < phi_N:
-        a = (d * e) % phi_N
-        if  a == 1:
-            break 
-        d = d + 1'''
     return N, phi_N, d, e
 
 
-
-
-
 def binary(num, pre, length, spacer):
-
     return '{0}{{:{1}>{2}}}'.format(pre, spacer, length).format(bin(num)[2:])
 
 
 
 def RSA_padding(message, block_length,message_length_in_bit, message_length_in_each_block, number_of_blocks, randomness_length_in_each_block):
-
-    '''
-    message_length_in_bit = message.bit_length()
-    message_length_in_each_block = (block_length/2 - 3) * 8  #in bits
-    number_of_blocks = math.ceil(message_length_in_bit / float(message_length_in_each_block))
-    randomness_length_in_each_block = block_length/2 * 8 #in bits
-    '''
     # generate message bits:
     message_bits = message.zfill(message_length_in_each_block)
     #bbb = binary(message,'00000010', block_length*8 - message_length_each_block - 16, '0')
@@ -316,92 +297,112 @@ def RSA_deleting_zeros(m):
     return m
 
 if __name__=='__main__':
-
-    # Problem 1:
+    # Default input file, change as you may want to
     input_file = open('exampleInputA.txt')    
-    print "The default input is exampleInputA.txt, you may edit the file using your own input"
+    print "Problem 1: The default input is exampleInputA.txt, you may edit the file using your own input"
     plaintext = input_file.read()
     input_file.close()
-    message_blocks = build_message_blocks(plaintext,block_length)
+    message_blocks = build_message_blocks(plaintext, block_length)
+    
+    # Problem 1:
     flag = True
     while flag:
-        input_1 = raw_input("Enter 1 for CBC mode encryption or 2 for CTR mode encryption: ")
+        input_1 = raw_input("\nEnter 1 for CBC mode encryption or 2 for CTR mode encryption: ")
         if input_1 == '1':
             cbc = True
             while cbc:
-                enc_dec = raw_input("Enter 1 for encrytion or 2 for decryption: ")
+                enc_dec = raw_input("\nEnter 1 for encrytion or 2 for decryption: ")
                 if enc_dec == '1':
-                    ciphertext,iv = CBC_encryption(message_blocks, key)
-                    output_file = open('CBC_encryption.txt', 'w' )
+                    ciphertext, iv_init = CBC_encryption(message_blocks, key)
                     ciphertext_string = ''.join(ciphertext)
+                    # output ciphertext:
+                    output_file = open('CBC_ciphertext.txt', 'w' )
                     output_file.write(binascii.hexlify(ciphertext_string))
                     output_file.close()
-                    print "The resulted ciphr text has been saved in CBC_ecryption.txt"
+                    # output iv_init:
+                    output_file = open('CBC_iv.txt', 'w' )
+                    output_file.write(binascii.hexlify(iv_init))
+                    output_file.close()
+                    print "\nThe resulted ciphertext and iv has been saved in CBC_ciphertext.txt and CBC_iv.txt."
                 if enc_dec == '2':
-                    decrypted_plaintext = CBC_decryption(ciphertext, key, iv)
+                    decrypted_plaintext = CBC_decryption(ciphertext, key, iv_init)
                     dec =  ''.join(decrypted_plaintext)
+                    # output decryption
                     output_file = open('CBC_decryption.txt', 'w' )
                     output_file.write(dec)
                     output_file.close()
-                    print "The resulted plain text has been saved in CBC_decryption.txt"
-                cbc_ = raw_input("Enter 'q' if you are done with CBC mode otherwise press a key: ")
+                    print "\nThe resulted plain text has been saved in CBC_decryption.txt."
+                cbc_ = raw_input("\nEnter 'q' if you are done with CBC mode otherwise press a key: ")
                 if cbc_ == 'q':
                     cbc = False
 
         if input_1 == '2':
             ctr = True
             while ctr:
-                enc_dec = raw_input("Enter 1 for encrytion or 2 for decryption: ")
+                enc_dec = raw_input("\nEnter 1 for encrytion or 2 for decryption: ")
                 if enc_dec == '1':
-                    plaintext = input_file.read()
                     IV = generate_IV(message_blocks,key)
                     ciphertext = CTR_encryption(message_blocks, IV)
-                    output_file = open('CTR_encryption.txt', 'w' )
                     ciphertext_string = ''.join(ciphertext)
+                    # save the ciphertext:
+                    output_file = open('CTR_ciphertext.txt', 'w' )
                     output_file.write(binascii.hexlify(ciphertext_string))
                     output_file.close()
-                    print "The resulted ciphr text has been saved in CTR_ecryption.txt"
+                    # save the iv:
+                    output_file = open('CTR_iv.txt', 'w' )
+                    output_file.write(binascii.hexlify(IV[0]))
+                    output_file.close()
+                    print "\nThe resulted ciphertext, iv has been saved in CTR_ciphertext.txt and CTR_iv.txt"
                 if enc_dec == '2':
                     decrypted_plaintext = CTR_decryption(ciphertext, IV)
                     p =  ''.join(decrypted_plaintext)
+                    # save the decrypted plaintext:
                     output_file = open('CTR_decryption.txt', 'w' )
                     output_file.write(p)
                     output_file.close()
-                    print "The resulted plain text has been saved in CTR_decryption.txt" 
-                ctr_ = raw_input("Enter 'q' if you are done with CTR mode otherwise press a key")
+                    print "\nThe resulted plain text has been saved in CTR_decryption.txt" 
+                ctr_ = raw_input("\nEnter 'q' if you are done with CTR mode otherwise press a key:")
                 if ctr_ == 'q':
                     ctr = False
-        fla = raw_input("Enter 'q' if you are done with AESs otherwise press a key to continue: ")
+        fla = raw_input("\nEnter 'q' if you are done with AESs otherwise press a key to continue: ")
         if fla == 'q':
             flag = False
             
     # Problem 2:
     mac = True
-    while mac:    
-        print 'the default input is exampleInputA.txt \nIf you want to verify a tag save it in tag.txt' 
-        input_2 = raw_input("Enter 1 for CBC mac or 2 for hash and mac: ")
+    while mac:  
+        print '\n\nProblem 2: The default input is exampleInputA.txt, if you want to verify a tag save it in tag.txt' 
+        input_2 = raw_input("\nEnter 1 for CBC mac or 2 for hash and mac: ")
+        # CBC mac
         if input_2 == '1':
-            tag = CBC_mac(plaintext , key)
+            # generate a tag:
+            tag = CBC_mac(plaintext, key)
             cbc_tag_file = open('CBC_mac.txt','w')
             cbc_tag_file.write(binascii.hexlify(tag))
-            print "The resulted mac is saved in CBC_mac.txt"
             cbc_tag_file.close()
-            inp = open('tag.txt','r')
-            tag_ = inp.read()
-            inp.close()
-            CBC_mac_verification(plaintext , key , tag_)
-        # generating a mac and verify it using Hash-and-mac
+            print "\nThe resulted mac is saved in CBC_mac.txt"
+            # verify a tag:
+            input_3 = raw_input("\nDo you want to veryfy a tag, if yes, save your tag into a file: tag.txt and press '1', if no, press any key else: ")
+            if input_3 == '1':
+                inp = open('tag.txt','r')
+                tag_ = inp.read()
+                inp.close()
+                CBC_mac_verification(plaintext, key, tag_)
+        # Hash-and-mac
         if input_2 == '2':
-            plaintext = input_file.read()
+            # generate a tag:
             hash_mac = open('hash_mac.txt','w')
             hash_mac.write(binascii.hexlify(Hash_and_mac(plaintext , key)))
             hash_mac.close()
-            print "The resulted mac is saved in hash_mac.txt"
-            inp = open('tag.txt', 'r')
-            tag2 = inp.read()
-            inp.close()
-            Hash_and_mac_verificaion(plaintext , key , tag2)
-        fla = raw_input("Enter 'q' if you are done with MACs otherwise press a key to continue: ")
+            print "\nThe resulted mac is saved in hash_mac.txt"
+            # verify a tag:
+            input_3 = raw_input("\nDo you want to veryfy a tag, if yes, save your tag into a file: tag.txt and press '1', if no, press any key else: ")
+            if input_3 == '1':
+                inp = open('tag.txt', 'r')
+                tag2 = inp.read()
+                inp.close()
+                Hash_and_mac_verificaion(plaintext, key, tag2)
+        fla = raw_input("\nEnter 'q' if you are done with MACs otherwise press a key to continue: ")
         if fla == 'q':
             mac = False
 
