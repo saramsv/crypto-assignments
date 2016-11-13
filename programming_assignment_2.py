@@ -389,9 +389,8 @@ if __name__=='__main__':
             # verify a tag:
             input_3 = raw_input("\nDo you want to veryfy a tag, if yes, save your tag into a file: tag.txt and your message in message.txt and press '1', if no, press any key else: ")
             if input_3 == '1':
-                inp = open('tag.txt','w')
-                inp.write(binascii.hexlify(tag))
-                tag_ = binascii.hexlify(tag)
+                inp = open('tag.txt','r')
+                tag_ = inp.read()
                 inp.close()
                 messa = open('message.txt', 'r')
                 plaintext = messa.read()
