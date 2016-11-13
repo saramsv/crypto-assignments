@@ -423,17 +423,26 @@ if __name__=='__main__':
     message_blocks = RSA_padding_all_blocks(message , num_bits/8)
     #print message_blocks
     m_block = list();
+    c_block = list();
     for block_i in message_blocks:
         c = RSA_encryption(int(block_i,16), N, e)
         m = RSA_decryption(c, N, d)
         #print m
+        c = hex(c)
         m = hex(m)
         #print m
+        c_block.append(c[-1 - (num_bits/2-24)/8*2 : -1])
         m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
+    c = ''.join(c_block)
     m =  ''.join(m_block)
+    c = RSA_deleting_zeros(c)
     m = RSA_deleting_zeros(m)
-    rsa_output = open('rsa_output.txt','w')
+    rsa_output = open('rsa_ciphertext.txt','w')
+    rsa_output.write(c)
+    rsa_output.close()
+    rsa_output = open('rsa_decryption.txt','w')
     rsa_output.write(m)
     rsa_output.close()
     print "The decrypted mesage is saved in rsa_output.txt"
+
 
