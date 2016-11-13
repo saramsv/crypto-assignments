@@ -324,7 +324,7 @@ if __name__=='__main__':
                     output_file.write(binascii.hexlify(iv_init))
                     output_file.close()
                     print "\nThe resulted ciphertext and iv has been saved in CBC_ciphertext.txt and CBC_iv.txt."
-                if enc_dec == '2':
+                elif enc_dec == '2':
                     decrypted_plaintext = CBC_decryption(ciphertext, key, iv_init)
                     dec =  ''.join(decrypted_plaintext)
                     # output decryption
@@ -332,6 +332,8 @@ if __name__=='__main__':
                     output_file.write(dec)
                     output_file.close()
                     print "\nThe resulted plain text has been saved in CBC_decryption.txt."
+                else:
+                    print "You entersed a wrong character"
                 cbc_ = raw_input("\nEnter 'q' if you are done with CBC mode otherwise press a key: ")
                 if cbc_ == 'q':
                     cbc = False
@@ -353,7 +355,7 @@ if __name__=='__main__':
                     output_file.write(binascii.hexlify(IV[0]))
                     output_file.close()
                     print "\nThe resulted ciphertext, iv has been saved in CTR_ciphertext.txt and CTR_iv.txt"
-                if enc_dec == '2':
+                elif enc_dec == '2':
                     decrypted_plaintext = CTR_decryption(ciphertext, IV)
                     p =  ''.join(decrypted_plaintext)
                     # save the decrypted plaintext:
@@ -361,6 +363,9 @@ if __name__=='__main__':
                     output_file.write(p)
                     output_file.close()
                     print "\nThe resulted plain text has been saved in CTR_decryption.txt" 
+                else:
+                    print "You entersed a wrong character"
+
                 ctr_ = raw_input("\nEnter 'q' if you are done with CTR mode otherwise press a key:")
                 if ctr_ == 'q':
                     ctr = False
@@ -371,7 +376,7 @@ if __name__=='__main__':
     # Problem 2:
     mac = True
     while mac:  
-        print '\n\nProblem 2: The default input is exampleInputA.txt, if you want to verify a tag save it in tag.txt' 
+        print '\n\nProblem 2: The default input is exampleInputA.txt' 
         input_2 = raw_input("\nEnter 1 for CBC mac or 2 for hash and mac: ")
         # CBC mac
         if input_2 == '1':
@@ -382,44 +387,68 @@ if __name__=='__main__':
             cbc_tag_file.close()
             print "\nThe resulted mac is saved in CBC_mac.txt"
             # verify a tag:
-            input_3 = raw_input("\nDo you want to veryfy a tag, if yes, save your tag into a file: tag.txt and press '1', if no, press any key else: ")
+            input_3 = raw_input("\nDo you want to veryfy a tag, if yes, save your tag into a file: tag.txt and your message in message.txt and press '1', if no, press any key else: ")
             if input_3 == '1':
-                inp = open('tag.txt','r')
-                tag_ = inp.read()
+                inp = open('tag.txt','w')
+                inp.write(binascii.hexlify(tag))
+                tag_ = binascii.hexlify(tag)
                 inp.close()
+                messa = open('message.txt', 'r')
+                plaintext = messa.read()
+                messa.close()
                 CBC_mac_verification(plaintext, key, tag_)
         # Hash-and-mac
-        if input_2 == '2':
+        elif input_2 == '2':
             # generate a tag:
             hash_mac = open('hash_mac.txt','w')
             hash_mac.write(binascii.hexlify(Hash_and_mac(plaintext , key)))
             hash_mac.close()
             print "\nThe resulted mac is saved in hash_mac.txt"
             # verify a tag:
-            input_3 = raw_input("\nDo you want to veryfy a tag, if yes, save your tag into a file: tag.txt and press '1', if no, press any key else: ")
+            input_3 = raw_input("\nDo you want to veryfy a tag, if yes, save your tag into a file: tag.txt and your message in message.txt and press '1', if no, press any key else: ")
             if input_3 == '1':
                 inp = open('tag.txt', 'r')
                 tag2 = inp.read()
                 inp.close()
+                messa = open('message.txt', 'r')
+                plaintext = messa.read()
+                messa.close()
                 Hash_and_mac_verificaion(plaintext, key, tag2)
+        else:
+            print "You entersed a wrong character"
+
         fla = raw_input("\nEnter 'q' if you are done with MACs otherwise press a key to continue: ")
         if fla == 'q':
             mac = False
 
     # Problem 3:
-    print "RSA(please be patient, it may take few seconds): "
-    num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
-    num_bits = int(num_bits)
-    p = generate_prime(num_bits)
-    q = generate_prime(num_bits)
-    print "Prime numbers (p , q): "
-    print p
-    print q
-    N, phi, d, e = make_key_pair(p, q)
+    num_bits = 1024
+    ask = raw_input("Enter g for key generation e for encryption and d for decryption: ")
+    if ask == 'g':
+        num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
+        print "RSA(please be patient, it may take few seconds): "
+        num_bits = int(num_bits)
+        p = generate_prime(num_bits)
+        q = generate_prime(num_bits)
+        print "Prime numbers (p , q): "
+        print p
+        print q
+        N, phi, d, e = make_key_pair(p, q)
+        p_key = open('p_key.txt','w')
+        p_key.write(str(N))
+        p_key.write('\n')
+        p_key.write(str(e))
+        p_key.close()
+        s_key = open('s_key.txt','w')
+        s_key.write(str(N))
+        s_key.write('\n')
+        s_key.write(str(d))
+        s_key.close()
+        print "\npublic key is saved in p_key.txt and secret key is saved in s_key.txt"
     message = plaintext
-    print message
+    #print message
     message = int(message, 16)
-    print 'message: {}'.format(message)
+    #print 'message: {}'.format(message)
     message_blocks = RSA_padding_all_blocks(message , num_bits/8)
     #print message_blocks
     m_block = list();
@@ -443,6 +472,7 @@ if __name__=='__main__':
     rsa_output = open('rsa_decryption.txt','w')
     rsa_output.write(m)
     rsa_output.close()
-    print "The decrypted mesage is saved in rsa_output.txt"
+    print "The encrypted mesage is saved in rsa_encryption.txt"
+    print "The decrypted mesage is saved in rsa_decryption.txt"
 
 
