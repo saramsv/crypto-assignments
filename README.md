@@ -15,12 +15,14 @@ CTR IV |CTR_iv.txt|
 
 ## MAC
 We use exampleInputA.txt as the message input for both CBC mac and Hash and mac. The reasult of them are saved in CBC_mac.txt and hash_mac.txt. Files 'tag.txt' and 'message.txt' are provided in order to verify a massage and a tag. You can edit these files and use your desierd input in hex.
+
 ## RSA
 In this section we also use exampleInputA.txt file as the input. The result are saved in files as follows.
 
 content | file name | 
 --- | --- |
-public and private keys |p_s_key.txt |
+Public key |p_key.txt |
+Private keys |s_key.txt |
 RSA encryption |rsa_encryption.txt|
 RSA decryption |rsa_decryption.txt|
 
