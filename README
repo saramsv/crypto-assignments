@@ -1,0 +1,5 @@
+Problem 1:
+The key, input, output(including ciphertext and iv) are all stored in files as hex encoded string.
+First, an option of CBC mode (enter '1') or CTR mode (enter '2') is provided, then, an option of encryption (enter '1') or decryption (enter '2') is provided.
+
+
