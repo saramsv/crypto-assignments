@@ -13,53 +13,7 @@ key = binascii.unhexlify(key)
 block_length = 16
 xorWord = lambda ss,cc: ''.join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
 
-def generate_iv(block_length):
-    #IV = 16 * '\x00'
-    IV = Random.get_random_bytes(block_length) # CHECK!!
-    return IV
-
-def prime_test(p):
-    s = 0
-    N = p-1
-    while True:
-        N = N/2
-        s = s + 1
-        if N % 2 == 1:
-            d = N
-            break
-    for i in range(5):
-        a = random.randint(1, p-1)
-        flag = False
-        for r in range(s):
-            if r == 0:
-                w = pow(a, d, p)
-                if w == 1:
-                    flag = True
-                    break
-            q = pow(a, (2**r)*d , p)
-            if q == p-1:
-                flag = True
-                break
-    return flag
-
-def generate_prime(num_bits):
-    k = num_bits  
-    i = 0
-    prime_less_than_1000 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677,683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997]
-    while True:
-        p = random.randrange(2**(k-1),2**(k))
-        check = 0
-        for i in prime_less_than_1000:
-            if p%i == 0:
-                check = 1
-        #i = i+1
-        if check == 0:
-            prime_number_p = prime_test(p)
-            if prime_number_p == True :
-                #print i
-                return p
-
-def pad(plaintext, block_length):
+def build_message_blocks(plaintext, block_length):
     num_padzeros = len(plaintext) % block_length
     plaintext = plaintext + chr(0)*num_padzeros
     num_blocks = len(plaintext)/block_length
@@ -71,7 +25,7 @@ def pad(plaintext, block_length):
 def CBC_encryption(plaintext , key):
     mode = AES.MODE_ECB
     encryptor = AES.new(key)
-    IV = generate_iv(block_length)  
+    IV = Random.get_random_bytes(block_length) 
     IV_init = IV
     cipher_blocks = []
     for plaintext_i in plaintext:
@@ -104,7 +58,7 @@ def Dump(n):
 def generate_IV(plaintext, key):
     mode = AES.MODE_ECB
     encryptor = AES.new(key,mode)
-    IV = generate_iv(block_length)
+    IV = Random.get_random_bytes(block_length) 
     IV_blocks = []
     IV_blocks.append(encryptor.encrypt(IV))
     for plaintext_i in plaintext:
@@ -197,6 +151,46 @@ def Hash_and_mac_verificaion(message, key, tag):
         return
 
 
+def prime_test(p):
+    s = 0
+    N = p-1
+    while True:
+        N = N/2
+        s = s + 1
+        if N % 2 == 1:
+            d = N
+            break
+    for i in range(5):
+        a = random.randint(1, p-1)
+        flag = False
+        for r in range(s):
+            if r == 0:
+                w = pow(a, d, p)
+                if w == 1:
+                    flag = True
+                    break
+            q = pow(a, (2**r)*d , p)
+            if q == p-1:
+                flag = True
+                break
+    return flag
+
+def generate_prime(num_bits):
+    k = num_bits  
+    i = 0
+    prime_less_than_1000 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677,683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997]
+    while True:
+        p = random.randrange(2**(k-1),2**(k))
+        check = 0
+        for i in prime_less_than_1000:
+            if p%i == 0:
+                check = 1
+        #i = i+1
+        if check == 0:
+            prime_number_p = prime_test(p)
+            if prime_number_p == True :
+                #print i
+                return p
 def Ext_Euclidean(e, phi_N):
     u = e
     v = phi_N
@@ -323,12 +317,12 @@ def RSA_deleting_zeros(m):
 
 if __name__=='__main__':
 
-    # Encrypt using CBC mode
+    # Problem 1:
     input_file = open('exampleInputA.txt')    
     print "The default input is exampleInputA.txt, you may edit the file using your own input"
     plaintext = input_file.read()
     input_file.close()
-    message_blocks = pad(plaintext,block_length)
+    message_blocks = build_message_blocks(plaintext,block_length)
     flag = True
     while flag:
         input_1 = raw_input("Enter 1 for CBC mode encryption or 2 for CTR mode encryption: ")
@@ -380,6 +374,8 @@ if __name__=='__main__':
         fla = raw_input("Enter 'q' if you are done with AESs otherwise press a key to continue: ")
         if fla == 'q':
             flag = False
+            
+    # Problem 2:
     mac = True
     while mac:    
         print 'the default input is exampleInputA.txt \nIf you want to verify a tag save it in tag.txt' 
@@ -409,6 +405,7 @@ if __name__=='__main__':
         if fla == 'q':
             mac = False
 
+    # Problem 3:
     print "RSA(please be patient, it may take few seconds): "
     num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
     num_bits = int(num_bits)
