@@ -225,7 +225,7 @@ def make_key_pair(p,q):
     while True:
         if check_relatively_prime(e, phi_N):
             break
-         else:
+        else:
             e = random.randrange(0, phi_N)
             print "this is e"
     print e
