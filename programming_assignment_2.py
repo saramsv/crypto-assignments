@@ -450,6 +450,7 @@ if __name__=='__main__':
     #print 'message: {}'.format(message)
     message_blocks = RSA_padding_all_blocks(message , num_bits/8)
     #print message_blocks
+    '''
     m_block = list();
     c_block = list();
     for block_i in message_blocks:
@@ -473,5 +474,28 @@ if __name__=='__main__':
     rsa_output.close()
     print "The encrypted mesage is saved in rsa_encryption.txt"
     print "The decrypted mesage is saved in rsa_decryption.txt"
-
+    '''
+    c_block = list();
+    for block_i in message_blocks:
+        c = RSA_encryption(int(block_i,16), N, e)
+        c = hex(c)
+        c_block.append(c[-1 - (num_bits/2-24)/8*2 : -1])
+    c = ''.join(c_block)
+    c = RSA_deleting_zeros(c)
+    rsa_output = open('rsa_encryption.txt','w')
+    rsa_output.write(c)
+    rsa_output.close()
+    print "The encrypted mesage is saved in rsa_encryption.txt"
+    m_block = list();
+    for block_i in message_blocks:
+        m = RSA_decryption(c, N, d)
+        m = hex(m)
+        #print m
+        m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
+    m =  ''.join(m_block)
+    m = RSA_deleting_zeros(m)
+    rsa_output = open('rsa_decryption.txt','w')
+    rsa_output.write(m)
+    rsa_output.close()
+    print "The decrypted mesage is saved in rsa_decryption.txt"
 
