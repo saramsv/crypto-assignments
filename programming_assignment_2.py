@@ -494,65 +494,31 @@ if __name__=='__main__':
             s_key.close()
             print "\npublic key is saved in p_key.txt and secret key is saved in s_key.txt"
             break
+        else:
+            print "you entered a wrong character"
 
-    if start == True:
-        message = plaintext
-        #print message
-        message = int(message, 16)
-        #print 'message: {}'.format(message)
-        message_blocks = RSA_padding_all_blocks(message , num_bits/8)
-        c_block = list()
-        ciphertext_block = list()
-        for block_i in message_blocks:
-            c = RSA_encryption(int(block_i,16), N, e)
-            c_block.append(c)
-            ciphertext = hex(c)
-            ciphertext = ciphertext[2:-1]
-            ciphertext_block.append(ciphertext)
-        c =  ''.join(ciphertext_block)
-        rsa_output = open('rsa_encryption.txt','w')
-        rsa_output.write(c)
-        rsa_output.close()
-        print "The encrypted mesage is saved in rsa_encryption.txt"
-        # decryption
-        m_block = list()
-        for block_i in c_block:
-            m = RSA_decryption(block_i, N, d)
-            m = hex(m)
-            m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
-        m =  ''.join(m_block)
-        m = RSA_deleting_zeros(m)
-        rsa_output = open('rsa_decryption.txt','w')
-        rsa_output.write(m)
-        rsa_output.close()
-        print "The decrypted mesage is saved in rsa_decryption.txt"
-
-    '''
-    # READ IN CYPHERTEXT FROM FILE VERSION.
-    # encryption
+    message = plaintext
+    #print message
+    message = int(message, 16)
+    #print 'message: {}'.format(message)
+    message_blocks = RSA_padding_all_blocks(message , num_bits/8)
     c_block = list()
+    ciphertext_block = list()
     for block_i in message_blocks:
         c = RSA_encryption(int(block_i,16), N, e)
-        c = hex(c)
-        c = c[2:-1]
-        c = c.zfill(num_bits)
         c_block.append(c)
-    c_block_join =  ''.join(c_block)
+        ciphertext = hex(c)
+        ciphertext = ciphertext[2:-1]
+        ciphertext_block.append(ciphertext)
+    c =  ''.join(ciphertext_block)
     rsa_output = open('rsa_encryption.txt','w')
-    rsa_output.write(c_block_join)
+    rsa_output.write(c)
     rsa_output.close()
     print "The encrypted mesage is saved in rsa_encryption.txt"
-
-
     # decryption
-    readin = open('rsa_encryption.txt','r')
-    ccc = readin.read()
-    readin.close()
     m_block = list()
-    for i in range(len(c_block)):
-        c = RSA_deleting_zeros(ccc[i * num_bits : (i+1) * num_bits])
-        c = int(c, 16)
-        m = RSA_decryption(c, N, d)
+    for block_i in c_block:
+        m = RSA_decryption(block_i, N, d)
         m = hex(m)
         m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
     m =  ''.join(m_block)
@@ -560,4 +526,5 @@ if __name__=='__main__':
     rsa_output = open('rsa_decryption.txt','w')
     rsa_output.write(m)
     rsa_output.close()
-    print "The decrypted mesage is saved in rsa_decryption.txt"'''
+    print "The decrypted mesage is saved in rsa_decryption.txt"
+
