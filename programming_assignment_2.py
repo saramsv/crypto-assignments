@@ -423,27 +423,36 @@ if __name__=='__main__':
     # Problem 3:
     num_bits = 1024
     ask = raw_input("Enter g for key generation e for encryption and d for decryption: ")
-    if ask == 'g':
-        num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
-        print "RSA(please be patient, it may take few seconds): "
-        num_bits = int(num_bits)
-        p = generate_prime(num_bits)
-        q = generate_prime(num_bits)
-        print "Prime numbers (p , q): "
-        print p
-        print q
-        N, phi, d, e = make_key_pair(p, q)
-        p_key = open('p_key.txt','w')
-        p_key.write(str(N))
-        p_key.write('\n')
-        p_key.write(str(e))
-        p_key.close()
-        s_key = open('s_key.txt','w')
-        s_key.write(str(N))
-        s_key.write('\n')
-        s_key.write(str(d))
-        s_key.close()
-        print "\npublic key is saved in p_key.txt and secret key is saved in s_key.txt"
+    start = False
+    while start != True:
+        if ask == 'g':
+            start = true
+            num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
+            print "RSA(please be patient, it may take few seconds): "
+            num_bits = int(num_bits)
+            p = generate_prime(num_bits)
+            q = generate_prime(num_bits)
+            print "Prime numbers (p , q): "
+            print p
+            print q
+            N, phi, d, e = make_key_pair(p, q)
+            p_key = open('p_key.txt','w')
+            p_key.write(str(N))
+            p_key.write('\n')
+            p_key.write(str(e))
+            p_key.close()
+            s_key = open('s_key.txt','w')
+            s_key.write(str(N))
+            s_key.write('\n')
+            s_key.write(str(d))
+            s_key.close()
+            print "\npublic key is saved in p_key.txt and secret key is saved in s_key.txt"
+        if ask == 'e':
+            print "Please generate key first. "
+            break
+        if ask == 'd':
+            print "Please generate key and encrypt message first. "
+            break
     message = plaintext
     #print message
     message = int(message, 16)
