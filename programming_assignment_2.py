@@ -422,76 +422,63 @@ if __name__=='__main__':
 
     # Problem 3:
     num_bits = 1024
-    ask = raw_input("Enter g for key generation e for encryption and d for decryption: ")
-    if ask == 'g':
-        num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
-        print "RSA(please be patient, it may take few seconds): "
-        num_bits = int(num_bits)
-        p = generate_prime(num_bits)
-        q = generate_prime(num_bits)
-        print "Prime numbers (p , q): "
-        print p
-        print q
-        N, phi, d, e = make_key_pair(p, q)
-        p_key = open('p_key.txt','w')
-        p_key.write(str(N))
-        p_key.write('\n')
-        p_key.write(str(e))
-        p_key.close()
-        s_key = open('s_key.txt','w')
-        s_key.write(str(N))
-        s_key.write('\n')
-        s_key.write(str(d))
-        s_key.close()
-        print "\npublic key is saved in p_key.txt and secret key is saved in s_key.txt"
-    message = plaintext
-    #print message
-    message = int(message, 16)
-    #print 'message: {}'.format(message)
-    message_blocks = RSA_padding_all_blocks(message , num_bits/8)
-    #print message_blocks
-    '''
-    m_block = list();
-    c_block = list();
-    for block_i in message_blocks:
-        c = RSA_encryption(int(block_i,16), N, e)
-        m = RSA_decryption(c, N, d)
-        #print m
-        c = hex(c)
-        m = hex(m)
-        #print m
-        c_block.append(c[-1 - (num_bits/2-24)/8*2 : -1])
-        m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
-    c = ''.join(c_block)
-    m =  ''.join(m_block)
-    c = RSA_deleting_zeros(c)
-    m = RSA_deleting_zeros(m)
-    rsa_output = open('rsa_encryption.txt','w')
-    rsa_output.write(c)
-    rsa_output.close()
-    rsa_output = open('rsa_decryption.txt','w')
-    rsa_output.write(m)
-    rsa_output.close()
-    print "The encrypted mesage is saved in rsa_encryption.txt"
-    print "The decrypted mesage is saved in rsa_decryption.txt"
-    '''
-    c_block = list();
-    for block_i in message_blocks:
-        c = RSA_encryption(int(block_i,16), N, e)
-        c = hex(c)
-        c_block.append(c[-1 - (num_bits/2-24)/8*2 : -1])
-        c = ''.join(c_block)
-        c = RSA_deleting_zeros(c)
+    start = False
+    while start == False:
+        ask = raw_input("\nEnter g for key generation e for encryption and d for decryption: ")
+        if ask == 'g':
+            start = True
+            num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
+            print "\nRSA(please be patient, it may take few seconds): "
+            num_bits = int(num_bits)
+            p = generate_prime(num_bits)
+            q = generate_prime(num_bits)
+            print "Prime numbers (p , q): "
+            print p
+            print q
+            N, phi, d, e = make_key_pair(p, q)
+            p_key = open('p_key.txt','w')
+            p_key.write(str(N))
+            p_key.write('\n')
+            p_key.write(str(e))
+            p_key.close()
+            s_key = open('s_key.txt','w')
+            s_key.write(str(N))
+            s_key.write('\n')
+            s_key.write(str(d))
+            s_key.close()
+            print "\npublic key is saved in p_key.txt and secret key is saved in s_key.txt"
+        if ask == 'e':
+            print "Please generate key first. "
+            break
+        if ask == 'd':
+            print "Please generate key and encrypt message first. "
+            break
+
+    if start == True:
+        message = plaintext
+        #print message
+        message = int(message, 16)
+        #print 'message: {}'.format(message)
+        message_blocks = RSA_padding_all_blocks(message , num_bits/8)
+        c_block = list()
+        ciphertext_block = list()
+        for block_i in message_blocks:
+            c = RSA_encryption(int(block_i,16), N, e)
+            c_block.append(c)
+            ciphertext = hex(c)
+            ciphertext = ciphertext[2:-1]
+            ciphertext_block.append(ciphertext)
+        c =  ''.join(ciphertext_block)
         rsa_output = open('rsa_encryption.txt','w')
         rsa_output.write(c)
         rsa_output.close()
         print "The encrypted mesage is saved in rsa_encryption.txt"
-    m_block = list();
-    for block_i in message_blocks:
-        m = RSA_decryption(c, N, d)
-        m = hex(m)
-        #print m
-        m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
+        # decryption
+        m_block = list()
+        for block_i in c_block:
+            m = RSA_decryption(block_i, N, d)
+            m = hex(m)
+            m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
         m =  ''.join(m_block)
         m = RSA_deleting_zeros(m)
         rsa_output = open('rsa_decryption.txt','w')
