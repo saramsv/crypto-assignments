@@ -1,6 +1,6 @@
 # CBC, CTR, CBC_Mac, Hash_and_Mac and RSA implementatio
 ## CBC and CTR
-In this code we use exampleInputA.txt as the input plain text and exampleKeyOnes.txt as the key for CBC and CTR mode ciphers and CBC mac and Hash and mac. The results from each function are saved in a file. Here are the file names and their content:
+We implemented this programming assignment in python. In this code we use exampleInputA.txt as the input plain text and exampleKeyOnes.txt as the key for CBC and CTR mode ciphers and CBC mac and Hash and mac. The results from each function are saved in a file. Here are the file names and their content:
 
 content | file name | 
 --- | --- |
@@ -26,7 +26,9 @@ Private keys |s_key.txt |
 RSA encryption |rsa_encryption.txt|
 RSA decryption |rsa_decryption.txt|
 
-### How to run the program
-...
-pyhon programming_assignment_2.py
-...
+### How to run our code
+
+```
+python programming_assignment_2.py
+```
+
