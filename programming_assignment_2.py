@@ -447,6 +447,7 @@ if __name__=='__main__':
             s_key.write(str(d))
             s_key.close()
             print "\npublic key is saved in p_key.txt and secret key is saved in s_key.txt"
+            break
         if ask == 'e':
             print "Please generate key first. "
             break
