@@ -485,7 +485,7 @@ if __name__=='__main__':
     print "The encrypted mesage is saved in rsa_encryption.txt"
     print "The decrypted mesage is saved in rsa_decryption.txt"
     '''
-        # encryption
+    # encryption
     c_block = list()
     ciphertext_block = list()
     for block_i in message_blocks:
