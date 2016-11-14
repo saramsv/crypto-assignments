@@ -426,7 +426,7 @@ if __name__=='__main__':
     start = False
     while start != True:
         if ask == 'g':
-            start = true
+            start = True
             num_bits = raw_input("Enter the number of bits for the prime numbers(p , q)(make sure the number is a multiple of 8): ")
             print "RSA(please be patient, it may take few seconds): "
             num_bits = int(num_bits)
