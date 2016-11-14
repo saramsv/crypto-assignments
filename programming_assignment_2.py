@@ -558,19 +558,12 @@ if __name__=='__main__':
     # READ IN CYPHERTEXT FROM FILE VERSION.
     # encryption
     c_block = list()
-    ciphertext_block = list()
     for block_i in message_blocks:
         c = RSA_encryption(int(block_i,16), N, e)
         c = hex(c)
-        #print c
         c = c[2:-1]
-        #print c
         c = c.zfill(num_bits)
-        #print c
         c_block.append(c)
-        #ciphertext = hex(c)
-        #ciphertext = ciphertext[2:-1]
-        #ciphertext_block.append(ciphertext)
     c_block_join =  ''.join(c_block)
     rsa_output = open('rsa_encryption.txt','w')
     rsa_output.write(c_block_join)
@@ -582,14 +575,11 @@ if __name__=='__main__':
     readin = open('rsa_encryption.txt','r')
     ccc = readin.read()
     readin.close()
-    #print ccc
     m_block = list()
     for i in range(len(c_block)):
-        #print "check this"
-        #print ccc[i * num_bits : (i+1) * num_bits]
-        temp = RSA_deleting_zeros(ccc[i * num_bits : (i+1) * num_bits])
-        temp = int(temp, 16)
-        m = RSA_decryption(temp, N, d)
+        c = RSA_deleting_zeros(ccc[i * num_bits : (i+1) * num_bits])
+        c = int(c, 16)
+        m = RSA_decryption(c, N, d)
         m = hex(m)
         m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
     m =  ''.join(m_block)
