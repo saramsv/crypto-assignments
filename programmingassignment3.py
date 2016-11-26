@@ -9,6 +9,8 @@ from Crypto.Random import random
 import hashlib
 import os.path
 import sys
+import glob
+from programming_assignment_2 import CBC_mac_pad , CBC_mac
 
 
 
@@ -185,8 +187,22 @@ def RSA_deleting_zeros(m):
     m = m[k:] 
     return m
 
+def lock_directory(path):
+    files = glob.glob(path)
+    # iterate over the list getting each file 
+    files_content = ''
+    for fle in files:
+        # open the file and then call .read() to get the text 
+        with open(fle) as f:
+            text = f.read()
+            files_content = files_content + text
+
+    print binascii.hexlify(CBC_mac(files_content , key))
+    return
+
+
 if __name__=='__main__':
-    
+    '''
     # Problem 1:
     print "Wait for a second, the key is generated first..."
     num_bits = 1024
@@ -295,5 +311,7 @@ if __name__=='__main__':
         print type(hashdata)
         print "The verification is: "
         print (('\'' + m + '\'')==('\'' + hashdata + '\''))
+        '''
 
-    # Problem 2
+    # Problem 3
+    lock_directory('/home/sara/repos/583_programming_assignment_2/lock/*.txt')
