@@ -10,9 +10,16 @@ import hashlib
 import os.path
 import sys
 import glob
-from programming_assignment_2 import CBC_mac_pad , CBC_mac
+from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption
+
+import ntpath
+ntpath.basename("a/b/c")
 
 
+
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail
 
 k = open('exampleKeyOnes.txt')
 key = k.read()
@@ -190,14 +197,21 @@ def RSA_deleting_zeros(m):
 def lock_directory(path):
     files = glob.glob(path)
     # iterate over the list getting each file 
-    files_content = ''
     for fle in files:
-        # open the file and then call .read() to get the text 
         with open(fle) as f:
             text = f.read()
-            files_content = files_content + text
-
-    print binascii.hexlify(CBC_mac(files_content , key))
+            tag_name = 'tag_'
+            tag_name += path_leaf(fle)
+            tag_name = 'lock/' + tag_name
+            text_pad = build_message_blocks(text, block_length)
+            ciphertext,iv = CBC_encryption(text_pad , key)
+            tag_file = open(tag_name , 'w')
+            tag_file.write(CBC_mac(text , key))
+            tag_file.close()
+            f.close()
+        fi = open(fle , 'w')
+        fi.write(''.join(ciphertext))
+        f.close()
     return
 
 
@@ -314,4 +328,32 @@ if __name__=='__main__':
         '''
 
     # Problem 3
-    lock_directory('/home/sara/repos/583_programming_assignment_2/lock/*.txt')
+    path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
+    print "The default directory contains some text files in hex format and the default key is exampleKeyOnes.txt and they will be used if you use the default mode \n"
+    print "Lock mode \n"
+    lock_unlock = raw_input("Enter 'd' for using the default parameters or 'o' for entering new parameters: ")
+    if lock_unlock == 'd':
+        lock_directory(path)
+    elif lock_unlock == 'o':
+        lock = raw_input("Enter a path to a directory such as /home/*.txt: ")
+        path = lock
+        k = raw_input("Enter a file name containing the key in hex format: ")
+        k = open(k)
+        key = k.read()
+        k.close()
+        key = binascii.unhexlify(key) 
+        lock_directory(path)
+    else:
+        print "You entered a wrong character"
+
+
+
+
+
+
+
+
+
+
+
+
