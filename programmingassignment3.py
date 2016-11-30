@@ -162,14 +162,13 @@ def unlock_directory(path):
     pass
 
 if __name__=='__main__':
-
-
-    ''' 
     # Problem 1:
     print "Wait for a second, the key is generated first..."
     num_bits = 1024
-    p = generate_prime(num_bits)
-    q = generate_prime(num_bits) 
+    #p = generate_prime(num_bits)
+    p = 135156484614482737357455184408598406699207914724580074652827032168213256383256826001132099157420224151151753846235619407625325656897204211787583804671138347302029458487401513303736338917696832031622511401468711503557171009708504009731121850762706630257671898987807741856451413976157422890460828070231632333613
+    #q = generate_prime(num_bits) 
+    q = 179106361385509260634618941415336552751242094638745620838990170642580402162515678011327901337367152706088947720977832167319548307977414857525536147751846374081624300354452239603591876273424013120166856410750130713116016852656694328403887728636247082236182916794809921903124823721015683256461302732145059766491
     N, phi, d, e, identity, signature = RSA_key_generation(p, q)
     s_key = open('s_key.txt','w')
     s_key.write(str(N))
@@ -199,46 +198,63 @@ if __name__=='__main__':
         hashdata = hashlib.sha256(message).hexdigest()
         # save the hash into file (for verification later)
         file = open('hashofdata.txt','w')
-        file.write(hashdata)
+        file.write(str(hashdata))
         file.close()
-        # sign data
-        c = RSA_encryption(int(hashdata,16), N, e)
-        c = hex(c)
-        c = c[2:-1]
-        # save signature
+        print hashdata
+        hash_blocks = RSA_padding_all_blocks(int(hashdata,16), num_bits/8)
+        print hash_blocks
+
+        # 1.1 generate Signature and save it to file
+        c_block = list()
+        for block_i in hash_blocks:
+            c = RSA_encryption(int(block_i,16), N, e)
+            c = hex(c)
+            c = c[2:-1]
+            c = c.zfill(num_bits)
+            c_block.append(c)
+        c_block_join =  ''.join(c_block)
         rsa_output = open('rsa_signature.txt','w')
-        rsa_output.write(c)
+        rsa_output.write(c_block_join)
         rsa_output.close()
         print "\n Signature (encrypt using private key) is saved in rsa_signature.txt, public key is saved in p_key.txt and private key is saved in s_key.txt"
         
+        # 1.2 verification
+        # read in signature, public key
         ask = raw_input("Do you want to provide the data to verify via command line ('c') or from file ('f')?")
         if ask == 'c':
-            c = raw_input("Please type in the data to verify (hex): ") 
+            ccc = raw_input("Please type in the data to verify (hex): ") 
         if ask == 'f':
             if os.path.isfile('rsa_signature.txt'):
                 readin = open('rsa_signature.txt','r')
-                c = readin.read()
+                ccc = readin.read()
                 readin.close()
             else:
-                print "Signature file is missing, please sign data first."
-                sys.exit("Signature file is missing, please sign data first.")
+                print "Signature file is missing, please sign data first (Signature willl be automatically saved as a file)."
+                sys.exit("Signature file is missing, please sign data first (Signature willl be automatically saved as a file).")
         file = open('p_key.txt','r')
-        [N,d] = file.readlines()
-        file.close()
-        c = int(c,16)
+        [N, d] = file.readlines()
         N = int(N)
         d = int(d)
-        m = RSA_decryption(c, N, d)
-        m = hex(m)
-        m = m[2:-1]
-        # m = RSA_deleting_zeros(m)
+        file.close()
+        # start to verify 
+        m_block = list()
+        for i in range(len(c_block)):
+            c = RSA_deleting_zeros(ccc[i * num_bits : (i+1) * num_bits])
+            m = RSA_decryption(int(c, 16), N, d)
+            m = hex(m)
+            m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
+        m =  ''.join(m_block)
+        m = RSA_deleting_zeros(m)
         rsa_output = open('rsa_verification.txt','w')
         rsa_output.write(m)
         rsa_output.close()
         print "The verification (decrypt using public key) message is saved in rsa_verification.txt"
+        # Show the verifying result
         file = open('hashofdata.txt','r')
         hashdata = file.read()
         file.close()
+        print m
+        print hashdata
         print "The verification result is: "
         print (('\'' + m + '\'')==('\'' + hashdata + '\''))
     if ask == 'v':  # verification mode
@@ -276,8 +292,9 @@ if __name__=='__main__':
         print type(hashdata)
         print "The verification is: "
         print (('\'' + m + '\'')==('\'' + hashdata + '\''))
-        
-    
+
+ 
+   
     # Problem 3
     path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
     print "The default directory contains some text files in hex format and the default key is exampleKeyOnes.txt and they will be used if you use the default mode \n"
@@ -297,19 +314,6 @@ if __name__=='__main__':
     else:
         print "You entered a wrong character"
    
-    '''
     path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
     mac_verification(path)
-
-
-
-
-
-
-
-
-
-
-
-
 
