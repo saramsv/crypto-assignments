@@ -14,8 +14,6 @@ from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CB
 import ntpath
 ntpath.basename("a/b/c")
 
-
-
 def path_leaf(path):
     head, tail = ntpath.split(path)
     return tail
@@ -44,9 +42,15 @@ def from_bytes(n):  #n is the number that is equal to the length of the message 
 def binary(num, pre, length, spacer):
     return '{0}{{:{1}>{2}}}'.format(pre, spacer, length).format(bin(num)[2:])
 
+def random_symmetric_key_generator(length):
+    a = open("/dev/urandom","rb").read(length)
+    return binascii.hexlify(a)
+
 def lock_directory(path):
     files = glob.glob(path)
     # iterate over the list getting each file 
+    mac_key = random_symmetric_key_generator(32)
+    mac_key = binascii.unhexlify(mac_key)
     for fle in files:
         with open(fle) as f:
             text = f.read()
@@ -56,16 +60,23 @@ def lock_directory(path):
             text_pad = build_message_blocks(text, block_length)
             ciphertext,iv = CBC_encryption(text_pad , key)
             tag_file = open(tag_name , 'w')
-            tag_file.write(CBC_mac(text , key))
+            tag_file.write(CBC_mac(''.join(ciphertext) , mac_key))
             tag_file.close()
             f.close()
         fi = open(fle , 'w')
         fi.write(''.join(ciphertext))
         f.close()
+    sym_keys_file = open('lock/symmetric_keys_file.txt' , 'w')
+    sym_keys_file.write(mac_key)
+    sym_keys_file.write(';')
+    sym_keys_file.write(key)
+    sym_keys_file.close()
     return
 
 if __name__=='__main__':
-    
+
+
+    ''' 
     # Problem 1:
     print "Wait for a second, the key is generated first..."
     num_bits = 1024
@@ -175,7 +186,7 @@ if __name__=='__main__':
         print "The verification is: "
         print (('\'' + m + '\'')==('\'' + hashdata + '\''))
         
-
+    '''
     # Problem 3
     path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
     print "The default directory contains some text files in hex format and the default key is exampleKeyOnes.txt and they will be used if you use the default mode \n"
@@ -194,6 +205,8 @@ if __name__=='__main__':
         lock_directory(path)
     else:
         print "You entered a wrong character"
+   
+
 
 
 
