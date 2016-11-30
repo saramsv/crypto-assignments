@@ -10,9 +10,51 @@ import hashlib
 import os.path
 import sys
 import glob
-from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption, build_message_blocks, prime_test, generate_prime, make_key_pair, RSA_padding, RSA_padding_all_blocks, pow_mod, RSA_encryption, RSA_decryption, RSA_deleting_zeros, check_relatively_prime, Ext_Euclidean 
+from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption, build_message_blocks, prime_test, generate_prime, RSA_padding, RSA_padding_all_blocks, pow_mod, RSA_encryption, RSA_decryption, RSA_deleting_zeros, check_relatively_prime, Ext_Euclidean, make_key_pair, CBC_mac_verification
 import ntpath
+
 ntpath.basename("a/b/c")
+locker_pk = ''
+locker_sk = ''
+locker_N = ''
+unlocker_pk = ''
+unlocker_sc = ''
+unlocker_N = ''
+
+def generate_p_q():
+    num_bits = 1024
+    p = generate_prime(num_bits)
+    q = generate_prime(num_bits)
+    return p, q
+
+def RSA_key_generation(p,q, identity = 'Alice', filename = 'private_key.txt'): 
+    N = p * q
+    phi_N = (p - 1) * (q - 1)
+    e = random.randrange(0, phi_N) # private key
+    while True:
+        if check_relatively_prime(e, phi_N):
+            break
+        else:
+            e = random.randrange(0, phi_N)
+    # e = 65537   
+    if check_relatively_prime(e, phi_N) == False:
+        print "This e doesnot work"
+    d = Ext_Euclidean(e, phi_N) # public key
+    # use the private key to sign the public key
+    try:
+        with open('private_key.txt','r') as infile: # use the private key from file to sign public key
+            private_key = file.readlines()
+            private_key = int(private_key, 16)
+            file.close()
+            signature = pow(d, private_key, N)
+            signature = hex(signature)
+            signature = signature[2:-1]
+    except IOError: # file do not exist, use the own private key to sign public key
+        signature = pow(d, e, N)
+        signature = hex(signature)
+        signature = signature[2:-1]
+    return N, phi_N, d, e, identity, signature
+
 
 def path_leaf(path):
     head, tail = ntpath.split(path)
@@ -46,7 +88,18 @@ def random_symmetric_key_generator(length):
     a = open("/dev/urandom","rb").read(length)
     return binascii.hexlify(a)
 
+def locker_key_generator(p , q):
+    locker_N, phi, locker_pk, locker_sk  = make_key_pair(p, q)
+    return locker_N ,locker_pk, locker_sk
+
+def unlocker_key_generator(p , q):
+    unlocker_N, phi, unlocker_pk, unlocker_sk  = make_key_pair(p, q)
+    return unlocker_N , unlocker_pk, unlocker_sk
+
+
+
 def lock_directory(path):
+    '''
     files = glob.glob(path)
     # iterate over the list getting each file 
     mac_key = random_symmetric_key_generator(32)
@@ -66,12 +119,47 @@ def lock_directory(path):
         fi = open(fle , 'w')
         fi.write(''.join(ciphertext))
         f.close()
-    sym_keys_file = open('lock/symmetric_keys_file.txt' , 'w')
+    sym_keys_file = open('lock/symmetric_keys.txt' , 'w')
     sym_keys_file.write(mac_key)
     sym_keys_file.write(';')
     sym_keys_file.write(key)
     sym_keys_file.close()
+    '''
+    p , q = generate_p_q()
+    locker_key_generator(p , q)
+    p , q = generate_p_q()
+    unlocker_key_generator(p, q)
     return
+
+def list_of_files(path, base_name):
+    file_names = []
+    files = glob.glob(path)
+    for fl in files:
+        if base_name in path_leaf(fl):
+            file_names.append(fl)
+    return file_names
+
+def mac_verification(path):
+    sym_keys_file = open('lock/symmetric_keys.txt' , 'r')
+    keys = sym_keys_file.read()
+    extract_mac_key = keys.split(';')[0]
+    extract_sym_key = keys.split(';')[1]
+    list_of_tag_files = list_of_files(path , 'tag')
+    list_of_dec_files = list_of_files(path , 'file')
+    print list_of_dec_files[0]
+    for i in range(len(list_of_dec_files)+1):
+        print i
+        mf = open('lock/'+path_leaf(list_of_dec_files[i]), 'r')
+        message = mf.read()
+        mf.close()
+        t = open('lock/'+path_leaf(list_of_tag_files[i]) , 'r')
+        tag = t.read()
+        t.close()
+        CBC_mac_verification(message, extract_mac_key, tag)
+    return
+
+def unlock_directory(path):
+    pass
 
 if __name__=='__main__':
 
@@ -82,17 +170,20 @@ if __name__=='__main__':
     num_bits = 1024
     p = generate_prime(num_bits)
     q = generate_prime(num_bits) 
-    N, phi, d, e = make_key_pair(p, q)
-    p_key = open('s_key.txt','w')
-    p_key.write(str(N))
-    p_key.write('\n')
-    p_key.write(str(e))
-    p_key.close()
-    s_key = open('p_key.txt','w')
+    N, phi, d, e, identity, signature = RSA_key_generation(p, q)
+    s_key = open('s_key.txt','w')
     s_key.write(str(N))
     s_key.write('\n')
-    s_key.write(str(d))
+    s_key.write(str(e))
     s_key.close()
+    p_key = open('p_key.txt','w')
+    p_key.write(str(N))
+    p_key.write('\n')
+    p_key.write(str(d))
+    p_key.close()
+    sig_f = open('signature.txt','w')
+    sig_f.write(str(signature))
+    sig_f.close()
 
     ask = raw_input("Enter 's' for signing mode, 'v' for verification mode: ")
     if ask == 's': # signing mode
@@ -186,7 +277,7 @@ if __name__=='__main__':
         print "The verification is: "
         print (('\'' + m + '\'')==('\'' + hashdata + '\''))
         
-    '''
+    
     # Problem 3
     path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
     print "The default directory contains some text files in hex format and the default key is exampleKeyOnes.txt and they will be used if you use the default mode \n"
@@ -206,6 +297,9 @@ if __name__=='__main__':
     else:
         print "You entered a wrong character"
    
+    '''
+    path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
+    mac_verification(path)
 
 
 
