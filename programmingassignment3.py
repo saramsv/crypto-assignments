@@ -10,6 +10,7 @@ import hashlib
 import os.path
 import sys
 import glob
+import os
 from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption, build_message_blocks, prime_test, generate_prime, RSA_padding, RSA_padding_all_blocks, pow_mod, RSA_encryption, RSA_decryption, RSA_deleting_zeros, check_relatively_prime, Ext_Euclidean, make_key_pair
 import ntpath
 
@@ -86,8 +87,9 @@ def binary(num, pre, length, spacer):
     return '{0}{{:{1}>{2}}}'.format(pre, spacer, length).format(bin(num)[2:])
 
 def random_symmetric_key_generator(length):
-    a = open("/dev/urandom","rb").read(length)
-    return binascii.hexlify(a)
+    a = binascii.b2a_hex(os.urandom(length))
+    a = binascii.unhexlify(a)
+    return a
 
 def locker_key_generator(p , q):
     locker_N, phi, locker_pk, locker_sk  = make_key_pair(p, q)
@@ -96,6 +98,43 @@ def locker_key_generator(p , q):
 def unlocker_key_generator(p , q):
     unlocker_N, phi, unlocker_pk, unlocker_sk  = make_key_pair(p, q)
     return unlocker_N , unlocker_pk, unlocker_sk
+def hashing(message): 
+    return hashlib.sha256(message).hexdigest()
+
+def generate_signature(hashdata, N, e): # e is private key
+    c_block = list()
+    for block_i in hashdata:
+        c = RSA_encryption(int(block_i,16), N, e)
+        c = hex(c)
+        c = c[2:-1]
+        c = c.zfill(num_bits)
+        c_block.append(c)
+    signature =  ''.join(c_block)
+    rsa_output = open('rsa_signature.txt','w')
+    rsa_output.write(signature)
+    rsa_output.close()
+    return signature, len(c_block)
+
+def verification(signature, num_of_blocks, N, d):
+    m_block = list()
+    for i in range(num_of_blocks):
+        c = RSA_deleting_zeros(signature[i * num_bits : (i+1) * num_bits])
+        m = RSA_decryption(int(c,16), N, d)
+        m = hex(m)
+        m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
+    m =  ''.join(m_block)
+    m = RSA_deleting_zeros(m)
+    rsa_output = open('rsa_verification.txt','w')
+    rsa_output.write(m)
+    rsa_output.close()
+    print m
+    print "The verification (decrypt using public key) message is saved in rsa_verification.txt"
+    file = open('hashofdata.txt','r')
+    hashdata = file.read()
+    file.close()
+    print hashdata
+    return (('\'' + m + '\'')==('\'' + hashdata + '\''))
+
 
 
 
@@ -104,7 +143,8 @@ def lock_directory(path):
     files = glob.glob(path)
     # iterate over the list getting each file 
     mac_key = random_symmetric_key_generator(32)
-    mac_key = binascii.unhexlify(mac_key)
+    #mac_key = binascii.unhexlify(mac_key)
+    print mac_key
     print "mac_key: "
     print len(mac_key)
     print mac_key
@@ -139,6 +179,15 @@ def lock_directory(path):
     locker_key_generator(p , q)
     p , q = generate_p_q(num_bits)
     unlocker_key_generator(p, q)
+    sym_keys_file = open('lock/symmetric_keys.txt' , 'r')
+    keys = sym_keys_file.read()
+    rsa_enc_unlocker_pk = generate_signature(keys , unlocker_N , unlocker_pk) # here i used the public key of the unlocking party
+    print rsa_enc_unlocker_pk
+    rsa_sign_locker_sk = generate_signature(rsa_enc_unlocker_pk , locker_N , locker_sk) # I used the private key of the locking party
+    print rsa_sign_locker_sk
+    lock_data = open('lock_sig.txt' , 'w')
+    lock_data.write(rsa_sign_locker_sk)
+    lock_data.close()
     return
 
 def CBC_mac_verification(message, key, tag):
@@ -182,43 +231,6 @@ def mac_verification(path):
 
 def unlock_directory(path):
     pass
-
-def hashing(message): 
-    return hashlib.sha256(message).hexdigest()
-
-def generate_signature(hashdata, N, e):
-    c_block = list()
-    for block_i in hashdata:
-        c = RSA_encryption(int(block_i,16), N, e)
-        c = hex(c)
-        c = c[2:-1]
-        c = c.zfill(num_bits)
-        c_block.append(c)
-    signature =  ''.join(c_block)
-    rsa_output = open('rsa_signature.txt','w')
-    rsa_output.write(signature)
-    rsa_output.close()
-    return signature, len(c_block)
-
-def verification(signature, num_of_blocks, N, d):
-    m_block = list()
-    for i in range(num_of_blocks):
-        c = RSA_deleting_zeros(signature[i * num_bits : (i+1) * num_bits])
-        m = RSA_decryption(int(c,16), N, d)
-        m = hex(m)
-        m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
-    m =  ''.join(m_block)
-    m = RSA_deleting_zeros(m)
-    rsa_output = open('rsa_verification.txt','w')
-    rsa_output.write(m)
-    rsa_output.close()
-    print m
-    print "The verification (decrypt using public key) message is saved in rsa_verification.txt"
-    file = open('hashofdata.txt','r')
-    hashdata = file.read()
-    file.close()
-    print hashdata
-    return (('\'' + m + '\'')==('\'' + hashdata + '\''))
 
 if __name__=='__main__':
     '''
