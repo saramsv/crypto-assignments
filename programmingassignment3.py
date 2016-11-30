@@ -92,7 +92,7 @@ def lock_directory(path):
     return
 
 if __name__=='__main__':
-    
+     
     # Problem 1:
     print "Wait for a second, the key is generated first..."
     num_bits = 1024
@@ -127,15 +127,15 @@ if __name__=='__main__':
             readin.close()
         # compute hash H(message)
         hashdata = hashlib.sha256(message).hexdigest()
-        hashdata = int(hashdata, 16)
-        print hex(hashdata)
-        hash_blocks = RSA_padding_all_blocks(hashdata, num_bits/8)
-        print hash_blocks
-        # save the hash_blocks into file (for verification later)
+        # save the hash into file (for verification later)
         file = open('hashofdata.txt','w')
-        file.write(str(hash_blocks))
+        file.write(str(hashdata))
         file.close()
-        # (222) generate Signature and save it to file
+        print hashdata
+        hash_blocks = RSA_padding_all_blocks(int(hashdata,16), num_bits/8)
+        print hash_blocks
+
+        # 1.1 generate Signature and save it to file
         c_block = list()
         for block_i in hash_blocks:
             c = RSA_encryption(int(block_i,16), N, e)
@@ -149,6 +149,8 @@ if __name__=='__main__':
         rsa_output.close()
         print "\n Signature (encrypt using private key) is saved in rsa_signature.txt, public key is saved in p_key.txt and private key is saved in s_key.txt"
         
+        # 1.2 verification
+        # read in signature, public key
         ask = raw_input("Do you want to provide the data to verify via command line ('c') or from file ('f')?")
         if ask == 'c':
             ccc = raw_input("Please type in the data to verify (hex): ") 
@@ -165,8 +167,7 @@ if __name__=='__main__':
         N = int(N)
         d = int(d)
         file.close()
-
-        # (222) verify signature
+        # start to verify 
         m_block = list()
         for i in range(len(c_block)):
             c = RSA_deleting_zeros(ccc[i * num_bits : (i+1) * num_bits])
@@ -179,7 +180,7 @@ if __name__=='__main__':
         rsa_output.write(m)
         rsa_output.close()
         print "The verification (decrypt using public key) message is saved in rsa_verification.txt"
-        # let's verify it
+        # Show the verifying result
         file = open('hashofdata.txt','r')
         hashdata = file.read()
         file.close()
@@ -222,7 +223,6 @@ if __name__=='__main__':
         print type(hashdata)
         print "The verification is: "
         print (('\'' + m + '\'')==('\'' + hashdata + '\''))
-     
         
 
     # Problem 3
