@@ -10,10 +10,37 @@ import hashlib
 import os.path
 import sys
 import glob
-from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption, build_message_blocks, prime_test, generate_prime, make_key_pair, RSA_padding, RSA_padding_all_blocks, pow_mod, RSA_encryption, RSA_decryption, RSA_deleting_zeros, check_relatively_prime, Ext_Euclidean 
+from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption, build_message_blocks, prime_test, generate_prime, RSA_padding, RSA_padding_all_blocks, pow_mod, RSA_encryption, RSA_decryption, RSA_deleting_zeros, check_relatively_prime, Ext_Euclidean 
 import ntpath
 ntpath.basename("a/b/c")
 
+def RSA_key_generation(p,q, identity = 'Alice', filename = 'private_key.txt'): 
+    N = p * q
+    phi_N = (p - 1) * (q - 1)
+    e = random.randrange(0, phi_N) # private key
+    while True:
+        if check_relatively_prime(e, phi_N):
+            break
+        else:
+            e = random.randrange(0, phi_N)
+    # e = 65537   
+    if check_relatively_prime(e, phi_N) == False:
+        print "This e doesnot work"
+    d = Ext_Euclidean(e, phi_N) # public key
+    # use the private key to sign the public key
+    try:
+        with open('private_key.txt','r') as infile: # use the private key from file to sign public key
+            private_key = file.readlines()
+            private_key = int(private_key, 16)
+            file.close()
+            signature = pow(d, private_key, N)
+            signature = hex(signature)
+            signature = signature[2:-1]
+    except IOError: # file do not exist, use the own private key to sign public key
+        signature = pow(d, e, N)
+        signature = hex(signature)
+        signature = signature[2:-1]
+    return N, phi_N, d, e, identity, signature
 
 
 def path_leaf(path):
@@ -71,17 +98,20 @@ if __name__=='__main__':
     num_bits = 1024
     p = generate_prime(num_bits)
     q = generate_prime(num_bits) 
-    N, phi, d, e = make_key_pair(p, q)
-    p_key = open('s_key.txt','w')
-    p_key.write(str(N))
-    p_key.write('\n')
-    p_key.write(str(e))
-    p_key.close()
-    s_key = open('p_key.txt','w')
+    N, phi, d, e, identity, signature = RSA_key_generation(p, q)
+    s_key = open('s_key.txt','w')
     s_key.write(str(N))
     s_key.write('\n')
-    s_key.write(str(d))
+    s_key.write(str(e))
     s_key.close()
+    p_key = open('p_key.txt','w')
+    p_key.write(str(N))
+    p_key.write('\n')
+    p_key.write(str(d))
+    p_key.close()
+    sig_f = open('signature.txt','w')
+    sig_f.write(str(signature))
+    sig_f.close()
 
     ask = raw_input("Enter 's' for signing mode, 'v' for verification mode: ")
     if ask == 's': # signing mode
