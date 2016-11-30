@@ -161,14 +161,20 @@ def mac_verification(path):
 def unlock_directory(path):
     pass
 
+def hashing(message): 
+    return hashlib.sha256(message).hexdigest()
+
+def generate_signature(hashdata, N, d):
+    return signature
+
+def verification(signature, N, e):
+    return (True or False)
+
+
 if __name__=='__main__':
     # Problem 1:
     print "Wait for a second, the key is generated first..."
-    num_bits = 1024
-    #p = generate_prime(num_bits)
-    p = 135156484614482737357455184408598406699207914724580074652827032168213256383256826001132099157420224151151753846235619407625325656897204211787583804671138347302029458487401513303736338917696832031622511401468711503557171009708504009731121850762706630257671898987807741856451413976157422890460828070231632333613
-    #q = generate_prime(num_bits) 
-    q = 179106361385509260634618941415336552751242094638745620838990170642580402162515678011327901337367152706088947720977832167319548307977414857525536147751846374081624300354452239603591876273424013120166856410750130713116016852656694328403887728636247082236182916794809921903124823721015683256461302732145059766491
+    p,q = generate_p_q()
     N, phi, d, e, identity, signature = RSA_key_generation(p, q)
     s_key = open('s_key.txt','w')
     s_key.write(str(N))
@@ -195,7 +201,7 @@ if __name__=='__main__':
             message = readin.read()
             readin.close()
         # compute hash H(message)
-        hashdata = hashlib.sha256(message).hexdigest()
+        hashdata = hashing(message).hexdigest()
         # save the hash into file (for verification later)
         file = open('hashofdata.txt','w')
         file.write(str(hashdata))
