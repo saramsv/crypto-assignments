@@ -186,18 +186,45 @@ def unlock_directory(path):
 def hashing(message): 
     return hashlib.sha256(message).hexdigest()
 
-def generate_signature(hashdata, N, d):
-    return signature
+def generate_signature(hashdata, N, e):
+    c_block = list()
+    for block_i in hashdata:
+        c = RSA_encryption(int(block_i,16), N, e)
+        c = hex(c)
+        c = c[2:-1]
+        c = c.zfill(num_bits)
+        c_block.append(c)
+    signature =  ''.join(c_block)
+    rsa_output = open('rsa_signature.txt','w')
+    rsa_output.write(signature)
+    rsa_output.close()
+    return signature, len(c_block)
 
-def verification(signature, N, e):
-    return (True or False)
-
+def verification(signature, num_of_blocks, N, d):
+    m_block = list()
+    for i in range(num_of_blocks):
+        c = RSA_deleting_zeros(signature[i * num_bits : (i+1) * num_bits])
+        m = RSA_decryption(int(c,16), N, d)
+        m = hex(m)
+        m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
+    m =  ''.join(m_block)
+    m = RSA_deleting_zeros(m)
+    rsa_output = open('rsa_verification.txt','w')
+    rsa_output.write(m)
+    rsa_output.close()
+    print m
+    print "The verification (decrypt using public key) message is saved in rsa_verification.txt"
+    file = open('hashofdata.txt','r')
+    hashdata = file.read()
+    file.close()
+    print hashdata
+    return (('\'' + m + '\'')==('\'' + hashdata + '\''))
 
 if __name__=='__main__':
     '''
     # Problem 1:
     print "Wait for a second, the key is generated first..."
-    p,q = generate_p_q(num_bits)
+    #p,q = generate_p_q(num_bits)
     N, phi, d, e, identity, signature = RSA_key_generation(p, q)
     s_key = open('s_key.txt','w')
     s_key.write(str(N))
@@ -234,21 +261,15 @@ if __name__=='__main__':
         print hash_blocks
 
         # 1.1 generate Signature and save it to file
-        c_block = list()
-        for block_i in hash_blocks:
-            c = RSA_encryption(int(block_i,16), N, e)
-            c = hex(c)
-            c = c[2:-1]
-            c = c.zfill(num_bits)
-            c_block.append(c)
-        c_block_join =  ''.join(c_block)
-        rsa_output = open('rsa_signature.txt','w')
-        rsa_output.write(c_block_join)
-        rsa_output.close()
+        file = open('s_key.txt','r')
+        [N, e] = file.readlines()
+        N = int(N)
+        e = int(e)
+        file.close()
+        signature, num_of_blocks = generate_signature(hash_blocks, N, e)
         print "\n Signature (encrypt using private key) is saved in rsa_signature.txt, public key is saved in p_key.txt and private key is saved in s_key.txt"
         
         # 1.2 verification
-        # read in signature, public key
         ask = raw_input("Do you want to provide the data to verify via command line ('c') or from file ('f')?")
         if ask == 'c':
             ccc = raw_input("Please type in the data to verify (hex): ") 
@@ -266,62 +287,29 @@ if __name__=='__main__':
         d = int(d)
         file.close()
         # start to verify 
-        m_block = list()
-        for i in range(len(c_block)):
-            c = RSA_deleting_zeros(ccc[i * num_bits : (i+1) * num_bits])
-            m = RSA_decryption(int(c, 16), N, d)
-            m = hex(m)
-            m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
-        m =  ''.join(m_block)
-        m = RSA_deleting_zeros(m)
-        rsa_output = open('rsa_verification.txt','w')
-        rsa_output.write(m)
-        rsa_output.close()
-        print "The verification (decrypt using public key) message is saved in rsa_verification.txt"
-        # Show the verifying result
-        file = open('hashofdata.txt','r')
-        hashdata = file.read()
-        file.close()
-        print m
-        print hashdata
-        print "The verification result is: "
-        print (('\'' + m + '\'')==('\'' + hashdata + '\''))
+        verify_result = verification(ccc, num_of_blocks , N, d)
+        print "The verification result is: %s." % verify_result        
+
     if ask == 'v':  # verification mode
         ask = raw_input("Do you want to provide the data to verify via command line ('c') or from file ('f')?")
         if ask == 'c':
-            c = raw_input("Please type in the data to verify (hex): ") 
+            ccc = raw_input("Please type in the data to verify (hex): ") 
         if ask == 'f':
             if os.path.isfile('rsa_signature.txt'):
                 readin = open('rsa_signature.txt','r')
-                c = readin.read()
+                ccc = readin.read()
                 readin.close()
             else:
-                print "Signature file is missing, please sign data first."
-                sys.exit("Signature file is missing, please sign data first.")
+                print "Signature file is missing, please sign data first (Signature willl be automatically saved as a file)."
+                sys.exit("Signature file is missing, please sign data first (Signature willl be automatically saved as a file).")
         file = open('p_key.txt','r')
-        [N,d] = file.readlines()
-        file.close()
-        c = int(c,16)
+        [N, d] = file.readlines()
         N = int(N)
         d = int(d)
-        m = RSA_decryption(c, N, d)
-        m = hex(m)
-        m = m[2:-1]
-        # m = RSA_deleting_zeros(m)
-        rsa_output = open('rsa_verification.txt','w')
-        rsa_output.write(m)
-        rsa_output.close()
-        print "The verification (decrypt using public key) message is saved in rsa_verification.txt"
-        print m
-        print type(m)
-        file = open('datatosign.txt','r')
-        hashdata = file.read()
         file.close()
-        print hashdata
-        print type(hashdata)
-        print "The verification is: "
-        print (('\'' + m + '\'')==('\'' + hashdata + '\''))
-
+        # start to verify 
+        verify_result = verification(signature, N, e)
+        print "The verification result is: %s." % verify_result  
  
    
     # Problem 3
