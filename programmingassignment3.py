@@ -201,7 +201,7 @@ if __name__=='__main__':
             message = readin.read()
             readin.close()
         # compute hash H(message)
-        hashdata = hashing(message).hexdigest()
+        hashdata = hashing(message)
         # save the hash into file (for verification later)
         file = open('hashofdata.txt','w')
         file.write(str(hashdata))
