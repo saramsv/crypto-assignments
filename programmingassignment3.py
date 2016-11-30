@@ -10,8 +10,17 @@ import hashlib
 import os.path
 import sys
 import glob
-from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption, build_message_blocks, prime_test, generate_prime, RSA_padding, RSA_padding_all_blocks, pow_mod, RSA_encryption, RSA_decryption, RSA_deleting_zeros, check_relatively_prime, Ext_Euclidean, make_key_pair, CBC_mac_verification
+from programming_assignment_2 import CBC_mac_pad , CBC_mac , CBC_encryption , CBC_decryption, build_message_blocks, prime_test, generate_prime, RSA_padding, RSA_padding_all_blocks, pow_mod, RSA_encryption, RSA_decryption, RSA_deleting_zeros, check_relatively_prime, Ext_Euclidean, make_key_pair
 import ntpath
+
+k = open('exampleKeyOnes.txt')
+key = k.read()
+k.close()
+key = binascii.unhexlify(key)
+block_length = 16
+num_bits = 1024
+xorWord = lambda ss,cc: ''.join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
+
 
 ntpath.basename("a/b/c")
 locker_pk = ''
@@ -59,13 +68,6 @@ def path_leaf(path):
     head, tail = ntpath.split(path)
     return tail
 
-k = open('exampleKeyOnes.txt')
-key = k.read()
-k.close()
-key = binascii.unhexlify(key)
-block_length = 16
-xorWord = lambda ss,cc: ''.join(chr(ord(s)^ord(c)) for s,c in zip(ss,cc))
-
 def Dump(n):
     s = '%x' % n
     if len(s) & 1:
@@ -98,37 +100,56 @@ def unlocker_key_generator(p , q):
 
 
 def lock_directory(path):
-    '''
+    
     files = glob.glob(path)
     # iterate over the list getting each file 
     mac_key = random_symmetric_key_generator(32)
     mac_key = binascii.unhexlify(mac_key)
+    print "mac_key: "
+    print len(mac_key)
+    print mac_key
+    sym_keys_file = open('lock/symmetric_keys.txt' , 'w')
+    sym_keys_file.write(mac_key)
+    sym_keys_file.write(';')
+    print "sym_key: "
+    print len(key)
+    print key
+    sym_keys_file.write(key)
+    sym_keys_file.close()
+    i = 1
     for fle in files:
         with open(fle) as f:
             text = f.read()
             tag_name = 'tag_'
-            tag_name += path_leaf(fle)
+            tag_name += str(i)+'.txt'
+            #tag_name += path_leaf(fle)
             tag_name = 'lock/' + tag_name
             text_pad = build_message_blocks(text, block_length)
-            ciphertext,iv = CBC_encryption(text_pad , key)
-            tag_file = open(tag_name , 'w')
-            tag_file.write(CBC_mac(''.join(ciphertext) , mac_key))
-            tag_file.close()
+            ciphertext,iv = CBC_encryption(text_pad , key)    
             f.close()
         fi = open(fle , 'w')
         fi.write(''.join(ciphertext))
         f.close()
-    sym_keys_file = open('lock/symmetric_keys.txt' , 'w')
-    sym_keys_file.write(mac_key)
-    sym_keys_file.write(';')
-    sym_keys_file.write(key)
-    sym_keys_file.close()
-    '''
-    p , q = generate_p_q()
+        tag_file = open(tag_name , 'w')
+        tag_file.write(CBC_mac(''.join(ciphertext) , mac_key))
+        tag_file.close()
+        i = i + 1
+       
+    p , q = generate_p_q(num_bits)
     locker_key_generator(p , q)
-    p , q = generate_p_q()
+    p , q = generate_p_q(num_bits)
     unlocker_key_generator(p, q)
     return
+
+def CBC_mac_verification(message, key, tag):
+    tag_new = CBC_mac(message , key)
+    if tag_new == tag:
+        print "valid tag"
+        return
+    else:
+        print "Invalid tag"
+        return
+
 
 def list_of_files(path, base_name):
     file_names = []
@@ -145,16 +166,18 @@ def mac_verification(path):
     extract_sym_key = keys.split(';')[1]
     list_of_tag_files = list_of_files(path , 'tag')
     list_of_dec_files = list_of_files(path , 'file')
-    print list_of_dec_files[0]
-    for i in range(len(list_of_dec_files)+1):
-        print i
+
+    for i in range(len(list_of_dec_files)):
         mf = open('lock/'+path_leaf(list_of_dec_files[i]), 'r')
         message = mf.read()
         mf.close()
-        t = open('lock/'+path_leaf(list_of_tag_files[i]) , 'r')
-        tag = t.read()
-        t.close()
-        CBC_mac_verification(message, extract_mac_key, tag)
+        name= path_leaf(list_of_dec_files[i]).split('_')[1]
+        for j in range(len(list_of_tag_files)):
+            if path_leaf(list_of_tag_files[j]).split('_')[1] == name:
+                t = open('lock/'+path_leaf(list_of_tag_files[j]) , 'r')
+                tag = t.read()
+                t.close()
+                CBC_mac_verification(message, extract_mac_key, tag)
     return
 
 def unlock_directory(path):
@@ -171,8 +194,8 @@ def verification(signature, N, e):
 
 
 if __name__=='__main__':
+    '''
     # Problem 1:
-    num_bits = 1024
     print "Wait for a second, the key is generated first..."
     p,q = generate_p_q(num_bits)
     N, phi, d, e, identity, signature = RSA_key_generation(p, q)
@@ -319,7 +342,8 @@ if __name__=='__main__':
         lock_directory(path)
     else:
         print "You entered a wrong character"
-   
+   '''
     path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
+    lock_directory(path)
     mac_verification(path)
 
