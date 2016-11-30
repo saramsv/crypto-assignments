@@ -21,8 +21,7 @@ unlocker_pk = ''
 unlocker_sc = ''
 unlocker_N = ''
 
-def generate_p_q():
-    num_bits = 1024
+def generate_p_q(num_bits):
     p = generate_prime(num_bits)
     q = generate_prime(num_bits)
     return p, q
@@ -173,8 +172,9 @@ def verification(signature, N, e):
 
 if __name__=='__main__':
     # Problem 1:
+    num_bits = 1024
     print "Wait for a second, the key is generated first..."
-    p,q = generate_p_q()
+    p,q = generate_p_q(num_bits)
     N, phi, d, e, identity, signature = RSA_key_generation(p, q)
     s_key = open('s_key.txt','w')
     s_key.write(str(N))
