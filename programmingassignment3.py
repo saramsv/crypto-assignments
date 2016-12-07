@@ -159,13 +159,16 @@ def lock_directory(path):
     i = 1
     for fle in files:
         with open(fle) as f:
+            print "file name: ", fle
             text = f.read()
+            print "txt len: " , len(text)
             tag_name = 'tag_'
             tag_name += str(i)+'.txt'
             #tag_name += path_leaf(fle)
             tag_name = 'lock/' + tag_name
             text_pad = build_message_blocks(text, block_length)
             ciphertext,iv = CBC_encryption(text_pad , key)   
+            print "len of Ciphers: ",len(ciphertext)
             Iv_file = open('lock/IVs.txt', 'a')#I am supposing that the file name are in order and so do the IVs
             Iv_file.write(iv)
             Iv_file.write(';')
@@ -173,7 +176,10 @@ def lock_directory(path):
             f.close()
         fi = open(fle , 'w')
         fi.write(''.join(ciphertext))
-        f.close()
+        fi.close()
+        fi = open(fle , 'r')
+        print "what is saved: " , len(fi.read())
+        fi.close()
         tag_file = open(tag_name , 'w')
         tag_file.write(CBC_mac(''.join(ciphertext) , mac_key))
         tag_file.close()
@@ -222,13 +228,16 @@ def mac_verification(path):
     extract_mac_key = keys.split(';')[0]
     extract_sym_key = keys.split(';')[1]
     list_of_tag_files = list_of_files(path , 'tag')
+    print "list_of_tag_files: ", list_of_tag_files
     list_of_dec_files = list_of_files(path , 'file')
+    print "list_of_dec_files: " , list_of_dec_files
 
     for i in range(len(list_of_dec_files)):
         mf = open('lock/'+path_leaf(list_of_dec_files[i]), 'r')
         message = mf.read()
         mf.close()
         name= path_leaf(list_of_dec_files[i]).split('_')[1]
+        print "name: ", name
         for j in range(len(list_of_tag_files)):
             if path_leaf(list_of_tag_files[j]).split('_')[1] == name:
                 t = open('lock/'+path_leaf(list_of_tag_files[j]) , 'r')
@@ -236,14 +245,19 @@ def mac_verification(path):
                 t.close()
                 validity = CBC_mac_verification(message, extract_mac_key, tag)
                 print validity
+                print "len of mess: " , len(message)
+                print "len of unhex mes: " , len(message)
                 if validity == 'valid tag':
+                    print "tag was valid"
                     iv = open('lock/IVs.txt', 'r')
                     IVs = iv.read()
                     iv.close()
-                    print len(IVs.split(';')[i])
-                    decripted_file = CBC_decryption(message, extract_sym_key, IVs.split(';')[i])
+                    print "iv len: ", len(IVs.split(';')[i])
+                    print "encrypted message len: ", len(build_message_blocks(message, block_length))
+                    decripted_file = CBC_decryption(build_message_blocks(message, block_length), extract_sym_key, IVs.split(';')[i])
                     mf = open('lock/'+path_leaf(list_of_dec_files[i]), 'w')
-                    mf.write(decripted_file)
+                    mf.write(''.join(decripted_file))
+                    print "decryption has written in the file"
                     mf.close()
                     print decripted_file
 
