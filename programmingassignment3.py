@@ -165,7 +165,11 @@ def lock_directory(path):
             #tag_name += path_leaf(fle)
             tag_name = 'lock/' + tag_name
             text_pad = build_message_blocks(text, block_length)
-            ciphertext,iv = CBC_encryption(text_pad , key)    
+            ciphertext,iv = CBC_encryption(text_pad , key)   
+            Iv_file = open('lock/IVs.txt', 'a')#I am supposing that the file name are in order and so do the IVs
+            Iv_file.write(iv)
+            Iv_file.write(';')
+            Iv_file.close()
             f.close()
         fi = open(fle , 'w')
         fi.write(''.join(ciphertext))
@@ -181,9 +185,13 @@ def lock_directory(path):
     unlocker_key_generator(p, q)
     sym_keys_file = open('lock/symmetric_keys.txt' , 'r')
     keys = sym_keys_file.read()
-    rsa_enc_unlocker_pk = generate_signature(keys , unlocker_N , unlocker_pk) # here i used the public key of the unlocking party
+    hashed_keys = hashing(keys)
+    hash_blocks = RSA_padding_all_blocks(int(hashed_keys , 16), num_bits/8)
+    rsa_enc_unlocker_pk, a = generate_signature(hash_blocks , unlocker_N , unlocker_pk) # here i used the public key of the unlocking party
     print rsa_enc_unlocker_pk
-    rsa_sign_locker_sk = generate_signature(rsa_enc_unlocker_pk , locker_N , locker_sk) # I used the private key of the locking party
+    hashed_data = hashing(rsa_enc_unlocker_pk)
+    hash_blocks = RSA_padding_all_blocks(int(hashed_data , 16), num_bits/8)
+    rsa_sign_locker_sk, a = generate_signature(hash_blocks , locker_N , locker_sk) # I used the private key of the locking party
     print rsa_sign_locker_sk
     lock_data = open('lock_sig.txt' , 'w')
     lock_data.write(rsa_sign_locker_sk)
@@ -192,12 +200,12 @@ def lock_directory(path):
 
 def CBC_mac_verification(message, key, tag):
     tag_new = CBC_mac(message , key)
+    mes = ''
     if tag_new == tag:
-        print "valid tag"
-        return
+        mes= 'valid tag'
     else:
-        print "Invalid tag"
-        return
+        mes = 'Invalid tag'
+    return mes
 
 
 def list_of_files(path, base_name):
@@ -226,7 +234,21 @@ def mac_verification(path):
                 t = open('lock/'+path_leaf(list_of_tag_files[j]) , 'r')
                 tag = t.read()
                 t.close()
-                CBC_mac_verification(message, extract_mac_key, tag)
+                validity = CBC_mac_verification(message, extract_mac_key, tag)
+                print validity
+                if validity == 'valid tag':
+                    iv = open('lock/IVs.txt', 'r')
+                    IVs = iv.read()
+                    iv.close()
+                    print len(IVs.split(';')[i])
+                    decripted_file = CBC_decryption(message, extract_sym_key, IVs.split(';')[i])
+                    mf = open('lock/'+path_leaf(list_of_dec_files[i]), 'w')
+                    mf.write(decripted_file)
+                    mf.close()
+                    print decripted_file
+
+                else:
+                    print "This MAC is invalid and you can not decrypt the file"
     return
 
 def unlock_directory(path):
