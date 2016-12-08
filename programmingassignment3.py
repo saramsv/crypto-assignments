@@ -39,7 +39,7 @@ def generate_p_q(num_bits):
 def RSA_key_generation(p,q, identity = 'Alice', filename = 'private_key.txt'): 
     N = p * q
     phi_N = (p - 1) * (q - 1)
-    e = random.randrange(0, phi_N) # private key
+    e = random.randrange(0, phi_N) # public key
     while True:
         if check_relatively_prime(e, phi_N):
             break
@@ -48,7 +48,7 @@ def RSA_key_generation(p,q, identity = 'Alice', filename = 'private_key.txt'):
     # e = 65537   
     if check_relatively_prime(e, phi_N) == False:
         print "This e doesnot work"
-    d = Ext_Euclidean(e, phi_N) # public key
+    d = Ext_Euclidean(e, phi_N) # private key
     # use the private key to sign the public key
     try:
         with open('private_key.txt','r') as infile: # use the private key from file to sign public key
@@ -59,7 +59,7 @@ def RSA_key_generation(p,q, identity = 'Alice', filename = 'private_key.txt'):
             signature = hex(signature)
             signature = signature[2:-1]
     except IOError: # file do not exist, use the own private key to sign public key
-        signature = pow(d, e, N)
+        signature = pow(e, d, N)
         signature = hex(signature)
         signature = signature[2:-1]
     return N, phi_N, d, e, identity, signature
@@ -101,10 +101,10 @@ def unlocker_key_generator(p , q):
 def hashing(message): 
     return hashlib.sha256(message).hexdigest()
 
-def generate_signature(hashdata, N, e): # e is private key
+def generate_signature(hashdata, N, d): # d is private key
     c_block = list()
     for block_i in hashdata:
-        c = RSA_encryption(int(block_i,16), N, e)
+        c = RSA_encryption(int(block_i,16), N, d)
         c = hex(c)
         c = c[2:-1]
         c = c.zfill(num_bits)
@@ -115,11 +115,11 @@ def generate_signature(hashdata, N, e): # e is private key
     rsa_output.close()
     return signature, len(c_block)
 
-def verification(signature, num_of_blocks, N, d):
+def verification(signature, num_of_blocks, N, e):
     m_block = list()
     for i in range(num_of_blocks):
         c = RSA_deleting_zeros(signature[i * num_bits : (i+1) * num_bits])
-        m = RSA_decryption(int(c,16), N, d)
+        m = RSA_decryption(int(c,16), N, e)
         m = hex(m)
         m_block.append(m[-1 - (num_bits/2-24)/8*2 : -1])
     m =  ''.join(m_block)
@@ -277,12 +277,12 @@ if __name__=='__main__':
     s_key = open('s_key.txt','w')
     s_key.write(str(N))
     s_key.write('\n')
-    s_key.write(str(e))
+    s_key.write(str(d))
     s_key.close()
     p_key = open('p_key.txt','w')
     p_key.write(str(N))
     p_key.write('\n')
-    p_key.write(str(d))
+    p_key.write(str(e))
     p_key.close()
     sig_f = open('signature.txt','w')
     sig_f.write(str(signature))
@@ -310,11 +310,11 @@ if __name__=='__main__':
 
         # 1.1 generate Signature and save it to file
         file = open('s_key.txt','r')
-        [N, e] = file.readlines()
+        [N, d] = file.readlines()
         N = int(N)
-        e = int(e)
+        d = int(d)
         file.close()
-        signature, num_of_blocks = generate_signature(hash_blocks, N, e)
+        signature, num_of_blocks = generate_signature(hash_blocks, N, d)
         print "\n Signature (encrypt using private key) is saved in rsa_signature.txt, public key is saved in p_key.txt and private key is saved in s_key.txt"
         
         # 1.2 verification
@@ -330,12 +330,12 @@ if __name__=='__main__':
                 print "Signature file is missing, please sign data first (Signature willl be automatically saved as a file)."
                 sys.exit("Signature file is missing, please sign data first (Signature willl be automatically saved as a file).")
         file = open('p_key.txt','r')
-        [N, d] = file.readlines()
+        [N, e] = file.readlines()
         N = int(N)
-        d = int(d)
+        e = int(e)
         file.close()
         # start to verify 
-        verify_result = verification(ccc, num_of_blocks , N, d)
+        verify_result = verification(ccc, num_of_blocks , N, e)
         print "The verification result is: %s." % verify_result        
 
     if ask == 'v':  # verification mode
@@ -351,12 +351,12 @@ if __name__=='__main__':
                 print "Signature file is missing, please sign data first (Signature willl be automatically saved as a file)."
                 sys.exit("Signature file is missing, please sign data first (Signature willl be automatically saved as a file).")
         file = open('p_key.txt','r')
-        [N, d] = file.readlines()
+        [N, e] = file.readlines()
         N = int(N)
-        d = int(d)
+        e = int(e)
         file.close()
         # start to verify 
-        verify_result = verification(signature, N, e)
+        verify_result = verification(signature, N, d)
         print "The verification result is: %s." % verify_result  
  
    
