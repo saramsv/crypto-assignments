@@ -28,7 +28,7 @@ locker_pk = ''
 locker_sk = ''
 locker_N = ''
 unlocker_pk = ''
-unlocker_sc = ''
+unlocker_sk = ''
 unlocker_N = ''
 
 def generate_p_q(num_bits):
@@ -191,6 +191,18 @@ def lock_directory(path):
     unlocker_key_generator(p, q)
     sym_keys_file = open('lock/symmetric_keys.txt' , 'r')
     keys = sym_keys_file.read()
+    sym_keys_file.close()
+    rsa_enc_using_unlocker_pk = RSA_encryption(keys , unlocker_pk, unlocker_N)
+    rsa_enc_using_locker_sk = RSA_encryption(rsa_enc_using_unlocker_pk , locker_sk , locker_N)
+    print rsa_enc_using_locker_sk
+    rsa_dec_using_loker_pk = RSA_decryption(rsa_enc_using_locker_sk , locker_pk , locker_N)
+    rsa_dec_using_unloker_sk = RSA_decryption(rsa_dec_using_loker_pk, unlocker_sk , unlocker_N)
+    if rsa_dec_using_unloker_sk == keys:
+        print "were equal"
+    print "key: " , keys
+    print "rsa_dec_using_unloker_sk: " , rsa_dec_using_unloker_sk
+
+    '''
     hashed_keys = hashing(keys)
     hash_blocks = RSA_padding_all_blocks(int(hashed_keys , 16), num_bits/8)
     rsa_enc_unlocker_pk, a = generate_signature(hash_blocks , unlocker_N , unlocker_pk) # here i used the public key of the unlocking party
@@ -202,6 +214,7 @@ def lock_directory(path):
     lock_data = open('lock_sig.txt' , 'w')
     lock_data.write(rsa_sign_locker_sk)
     lock_data.close()
+    '''
     return
 
 def CBC_mac_verification(message, key, tag):
@@ -379,7 +392,7 @@ if __name__=='__main__':
     else:
         print "You entered a wrong character"
    '''
-    path = '/home/sara/repos/583_programming_assignment_2/lock/*.txt'
+    path = 'lock/*.txt'
     lock_directory(path)
     mac_verification(path)
 
