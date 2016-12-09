@@ -79,21 +79,6 @@ def assigning_keys(p,q, identity = 'Alice'):
     if check_relatively_prime(e, phi_N) == False:
         print "This e doesnot work"
     d = Ext_Euclidean(e, phi_N) # private key
-    '''
-    # use the private key to sign the public key
-    try:
-        with open('private_key.txt','r') as infile: # use the private key from file to sign public key
-            private_key = file.readlines()
-            private_key = int(private_key, 16)
-            file.close()
-            signature = pow(d, private_key, N)
-            signature = hex(signature)
-            signature = signature[2:-1]
-    except IOError: # file do not exist, use the own private key to sign public key
-        signature = pow(e, d, N)
-        signature = hex(signature)
-        signature = signature[2:-1]
-    '''
     p = {"identity":identity, "public_key": e, "private_key": d, "order": N}
     people.append(p)
     return e , d, N
@@ -357,6 +342,7 @@ def unlock_directory(path):
     print rsa_dec_using_unloker_sk1 
     print rsa_dec_using_unloker_sk2 
     return 
+
 def generate_cert():
     rsa_enc_using_id1, num_blocks1 = RSA_encryption_supp_blocks(hex(people[1]["public_key"])[2:-1], num_bits, people[2]["order"],  people[2]["private_key"])
     rsa_enc_using_id2, num_blocks2 = RSA_encryption_supp_blocks(rsa_enc_using_id1, num_bits, people[3]["order"],  people[3]["private_key"])
@@ -373,19 +359,20 @@ def generate_cert():
     cert_file.close()
 
 def verify_cert(public_key,id1, cert_file_name):
-    global locker_N, locker_pk, locker_sk, unlocker_sk, unlocker_pk, unlocker_N
+    #global locker_N, locker_pk, locker_sk, unlocker_sk, unlocker_pk, unlocker_N
 
     cert_file = open(cert_file_name , 'r')
     cert_data = cert_file.read() 
     cert_file.close()
 
-    rsa_dec_using_self = RSA_decryption_supp_blocks(cert_data , int((cert_data.split(';')[3])[2:],16) , num_bits, people[1]["order"], people[1]["public_key"])
+    rsa_dec_using_self = RSA_decryption_supp_blocks(cert_data.split(';')[0] , int((cert_data.split(';')[3])[2:],16) , num_bits, people[1]["order"], people[1]["public_key"])
     rsa_dec_using_id2 = RSA_decryption_supp_blocks(rsa_dec_using_self, int((cert_data.split(';')[2])[2:],16) , num_bits, people[3]["order"], people[3]["public_key"])
     rsa_dec_using_id1 = RSA_decryption_supp_blocks(rsa_dec_using_id2 , int((cert_data.split(';')[1])[2:],16) , num_bits,people[2]["order"], people[2]["public_key"])
     
-    print "rsa_dec_using_id1:" , rsa_dec_using_id1
-    print hex(public_key)
-    if rsa_dec_using_id1 == hex(public_key):
+    print "rsa_dec_using_id1:" , int(rsa_dec_using_id1, 16)
+    print "public key :" ,public_key
+    print "pub_key hex: ", hex(public_key)
+    if int(rsa_dec_using_id1, 16) == public_key:
         print "your certificate is valid"
     else:
         print "your certificate is invalid"
@@ -508,7 +495,7 @@ if __name__=='__main__':
 
     inp0 = raw_input('Enter the name of the unlocker: ')
     p , q = generate_p_q(num_bits)
-    locker_key_generator(p , q , inp0)
+    unlocker_key_generator(p , q , inp0)
     print "this public key has been generated for you", unlocker_pk
     inp1 = raw_input('Enter the name of CA1: ')
     p , q = generate_p_q(num_bits)
