@@ -1,0 +1,8 @@
+Problem 1. 
+The public key and secret key is generated first, saved as 'p_key.txt' and 's_key.txt';
+The program can run in two modes: signing mode and verification mode;
+Signing mode: data should be provided either in command line or from file 'datatosign.txt', they should be all in hex (omit the '\x' in front).
+Verification mode: data to verify should be provided either in command line or from file 'rsa_signature.txt', it will show the verification result.
+
+Problem 2.
+The RSA key generation function 'RSA_key_generation' is modified as requested.  
